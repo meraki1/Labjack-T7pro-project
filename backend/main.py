@@ -3,7 +3,7 @@ from fastapi import Depends
 from typing import Annotated, List
 from sqlalchemy.orm import Session
 from routers import channels, devices, experiment_parameters, experiments
-from ..backend import models
+import models
 
 app = FastAPI()
 
