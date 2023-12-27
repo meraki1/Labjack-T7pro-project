@@ -1,7 +1,5 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(tags="Channels")
 
-@router.get("/")
-def read_channels():
-    return {"Hello": "World"}
+

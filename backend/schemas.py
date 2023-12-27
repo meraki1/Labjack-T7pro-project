@@ -12,7 +12,7 @@ class ParameterClassRead(ParameterClassBase):
     param_class_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ParameterType Models
 class ParameterTypeBase(BaseModel):
@@ -27,7 +27,7 @@ class ParameterTypeRead(ParameterTypeBase):
     param_type_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Device Models
 class DeviceBase(BaseModel):
@@ -37,10 +37,10 @@ class DeviceCreate(DeviceBase):
     device_name: str
 
 class DeviceRead(DeviceBase):
-    device_id: int
+    pass
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # DeviceChannel Models
 class DeviceChannelBase(BaseModel):
@@ -53,7 +53,7 @@ class DeviceChannelRead(DeviceChannelBase):
     channel_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ExperimentChannel Models
 class ExperimentChannelBase(BaseModel):
@@ -70,8 +70,8 @@ class ExperimentChannelRead(ExperimentChannelBase):
     experiment_channel_id: int
 
     class Config:
-        orm_mode = True
-
+        from_attributes = True
+    
 # ExperimentLog Models
 class ExperimentLogBase(BaseModel):
     start_time: Optional[str]
@@ -87,7 +87,7 @@ class ExperimentLogRead(ExperimentLogBase):
     log_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ExperimentParameter Models
 class ExperimentParameterBase(BaseModel):
@@ -104,7 +104,7 @@ class ExperimentParameterRead(ExperimentParameterBase):
     experiment_param_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ParameterChannelRelationship Models
 class ParameterChannelRelationshipBase(BaseModel):
@@ -121,4 +121,4 @@ class ParameterChannelRelationshipRead(ParameterChannelRelationshipBase):
     relationship_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
