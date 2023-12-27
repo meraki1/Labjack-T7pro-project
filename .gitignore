@@ -1,3 +1,2 @@
-Labjack-T7pro-project\backend\.env
-
-Labjack-T7pro-project\backend\.venv
+.env
+.venv/
