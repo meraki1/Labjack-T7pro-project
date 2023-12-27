@@ -1,14 +1,33 @@
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, Float, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP
 from sqlalchemy.orm import relationship
-from database import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class ParameterClasses(Base):
+    __tablename__ = 'parameter_classes'
+
+    param_class_id = Column(Integer, primary_key=True, autoincrement=True)
+    param_class = Column(String(255), nullable=True)
+    parametar_type = relationship("ParameterTypes", backref="parameter_types")
+
+class ParameterTypes(Base):
+    __tablename__ = 'parameter_types'
+
+    param_type_id = Column(Integer, primary_key=True, autoincrement=True)
+    param_type = Column(String(255), nullable=True)
+    param_class_id = Column(Integer, ForeignKey('parameter_classes.param_class_id'))
+    experiment_parameters = relationship('ExperimentParameters', backref='parameter_types')
+    experiment_channels = relationship('ExperimentChannels', backref='parameter_types')
+    parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='parameter_types')
 
 class Device(Base):
     __tablename__ = 'device'
 
     device_id = Column(Integer, primary_key=True, autoincrement=True)
     device_name = Column(String(255), nullable=True)
-    comments = Column(Text, nullable=True)
-    param_channel_relationships = relationship("ParameterChannelRelationship", backref="device") #this means that for each Device, there can be multiple ParameterChannelRelationships.
+    experiment_logs = relationship('ExperimentLogs', backref='device')
+    parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='device')
 
 class DeviceChannel(Base):
     __tablename__ = 'device_channels'
@@ -16,28 +35,33 @@ class DeviceChannel(Base):
     channel_id = Column(Integer, primary_key=True, autoincrement=True)
     channel_name = Column(String(255), nullable=True)
     parametar_type = relationship("ParameterType", backref="parameter_types")
-    parameter_channel_relationships = relationship("ParameterChannelRelationship", backref="device_channels")
-    experiment_channels = relationship("ExperimentChannel", backref="device_channels")
+    parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='device_channels')
 
-class ExperimentChannel(Base):
-    __tablename__ = 'experiment_channels'
+class ParameterChannelRelationships(Base):
+    __tablename__ = 'parameter_channel_relationships'
 
-    experiment_channel_id = Column(Integer, primary_key=True, autoincrement=True)
-    log_id = Column(Integer, ForeignKey('experiment_logs.log_id'))  
-    channel_id = Column(Integer, ForeignKey('device_channels.channel_id'))  
+    relationship_id = Column(Integer, primary_key=True, autoincrement=True)
+    channel_id = Column(Integer, ForeignKey('device_channels.channel_id')) 
     param_type_id = Column(Integer, ForeignKey('parameter_types.param_type_id'))
+    device_id = Column(Integer, ForeignKey('device.device_id'))
 
-class ExperimentLog(Base):
+class ExperimentLogs(Base):
     __tablename__ = 'experiment_logs'
 
     log_id = Column(Integer, primary_key=True, autoincrement=True)
     start_time = Column(TIMESTAMP, nullable=True)
     comments = Column(Text, nullable=True)
     device_id = Column(Integer, ForeignKey('device.device_id')) 
-    experiment_parameters = relationship("ExperimentParameter", backref="experiment_log")
-    experiment_channel = relationship("ExperimentChannel", backref="experiment_logs")
-    labjack_data = relationship("LabjackT7ProData", backref="experiment_log")
+    experiment_parameters = relationship('ExperimentParameters', backref='experiment_logs')
+    experiment_channels = relationship('ExperimentChannels', backref='experiment_logs') 
 
+class ExperimentChannels(Base):
+    __tablename__ = 'experiment_channels'
+
+    experiment_channel_id = Column(Integer, primary_key=True, autoincrement=True)
+    log_id = Column(Integer, ForeignKey('experiment_logs.log_id'))  
+    exp_channel_id = Column(Integer)  
+    exp_param_type_id = Column(Integer)
 
 class ExperimentParameter(Base):
     __tablename__ = 'experiment_parameters'
@@ -46,65 +70,3 @@ class ExperimentParameter(Base):
     param_type_id = Column(Integer, ForeignKey('parameter_types.param_type_id')) 
     log_id = Column(Integer, ForeignKey('experiment_logs.log_id'))
     param_value = Column(String(255), nullable=True)
-
-class LabjackT7ProData(Base):
-    __tablename__ = 'labjack_t7_pro_data'
-
-    labjack_data_id = Column(Integer, primary_key=True, autoincrement=True)
-    experiment_time = Column(TIMESTAMP, nullable=True)
-    log_id = Column(Integer, ForeignKey('experiment_logs.log_id')) 
-    channel1_id = Column(Float, nullable=True)
-    channel1_data = Column(Float, nullable=True)
-    channel2_id = Column(Float, nullable=True)
-    channel2_data = Column(Float, nullable=True)
-    channel3_id = Column(Float, nullable=True)
-    channel3_data = Column(Float, nullable=True)
-    channel4_id = Column(Float, nullable=True)
-    channel4_data = Column(Float, nullable=True)
-    channel5_id = Column(Float, nullable=True)
-    channel5_data = Column(Float, nullable=True)
-    channel6_id = Column(Float, nullable=True)
-    channel6_data = Column(Float, nullable=True)
-    channel7_id = Column(Float, nullable=True)
-    channel7_data = Column(Float, nullable=True)
-    channel8_id = Column(Float, nullable=True)
-    channel8_data = Column(Float, nullable=True)
-    channel9_id = Column(Float, nullable=True)
-    channel9_data = Column(Float, nullable=True)
-    channel10_id = Column(Float, nullable=True)
-    channel10_data = Column(Float, nullable=True)
-    channel11_id = Column(Float, nullable=True)
-    channel11_data = Column(Float, nullable=True)
-    channel12_id = Column(Float, nullable=True)
-    channel12_data = Column(Float, nullable=True)
-    channel13_id = Column(Float, nullable=True)
-    channel13_data = Column(Float, nullable=True)
-    channel14_id = Column(Float, nullable=True)
-    channel14_data = Column(Float, nullable=True)
-
-class ParameterChannelRelationship(Base):
-    __tablename__ = 'parameter_channel_relationships'
-
-    relationship_id = Column(Integer, primary_key=True, autoincrement=True)
-    channel_id = Column(Integer, ForeignKey('device_channels.channel_id')) 
-    param_type_id = Column(Integer, ForeignKey('parameter_types.param_type_id'))
-    device_id = Column(Integer, ForeignKey('device.device_id')) 
-
-class ParameterClass(Base):
-    __tablename__ = 'parameter_classes'
-
-    param_class_id = Column(Integer, primary_key=True, autoincrement=True)
-    param_class = Column(String(255), nullable=True)
-    parametar_type = relationship("ParameterType", backref="parameter_types")
-
-class ParameterType(Base):
-    __tablename__ = 'parameter_types'
-
-    param_type_id = Column(Integer, primary_key=True, autoincrement=True)
-    param_type = Column(String(255), nullable=True)
-    param_class_id = Column(Integer, ForeignKey('parameter_classes.param_class_id'))
-    experiment_channel = relationship("ExperimentChannel", backref="parameter_types")
-    experiment_parameters = relationship("ExperimentParameter", backref="parameter_types")
-    parameter_channel_relationship = relationship("ParameterChannelRelationship", backref="parameter_types")
-
-
