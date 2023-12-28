@@ -79,8 +79,8 @@ class ExperimentLogBase(BaseModel):
     device_id: Optional[int]
 
 class ExperimentLogCreate(ExperimentLogBase):
-    start_time: str
-    comments: str
+    start_time: Optional[str]
+    comments: Optional[str]
     device_id: int
 
 class ExperimentLogRead(ExperimentLogBase):
