@@ -25,8 +25,8 @@ class ExperimentChannels(Base):
 
     experiment_channel_id = Column(Integer, primary_key=True, autoincrement=True)
     log_id = Column(Integer, ForeignKey('experiment_logs.log_id'))  
-    exp_channel_id = Column(Integer)  
-    exp_param_type_id = Column(Integer)
+    defined_channel_id = Column(Integer)  
+    defined_param_type_id = Column(Integer)
 
 class Device(Base):
     __tablename__ = 'device'

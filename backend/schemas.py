@@ -58,13 +58,13 @@ class DeviceChannelRead(DeviceChannelBase):
 # ExperimentChannel Models
 class ExperimentChannelBase(BaseModel):
     log_id: Optional[int]
-    channel_id: Optional[int]
-    param_type_id: Optional[int]
+    defined_channel_id: Optional[int]
+    defined_param_type_id: Optional[int]
 
 class ExperimentChannelCreate(ExperimentChannelBase):
     log_id: int
-    channel_id: int
-    param_type_id: int
+    defined_channel_id: int
+    defined_param_type_id: int
 
 class ExperimentChannelRead(ExperimentChannelBase):
     experiment_channel_id: int
