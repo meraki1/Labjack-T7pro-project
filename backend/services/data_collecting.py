@@ -1,27 +1,37 @@
 import time
+import pandas as pd
 from labjack import ljm # Use python311.python.exe Interpretor
 
-try:
-    # Open the LabJack device
-    handle = ljm.openS("T7", "ETHERNET", "192.168.88.15") 
+def start_experiment(experiment):
+    try:
+        # Open the LabJack device
+        handle = ljm.openS("T7", "ETHERNET", "192.168.88.15") 
 
-    num_inputs = 5  # Number of input channels to read (we have 5)
-    names = ["AIN0", "AIN1", "AIN2", "AIN3", "AIN4"]
+        num_inputs = len(experiment['channel_parameters'])  # Number of input channels to read
+        names = list(experiment['channel_parameters'].keys()) # Channels names
 
-    start_time = time.time()
-    for i in range(1000):  # Read data 1000 times to simulate 1-second data reception
-        data = ljm.eReadNames(handle, num_inputs, names)
-        print(f"Iteration {i+1}: {data}")
-    end_time = time.time()
+        data_rows = []
+        start_time = time.time()
+        end_time = start_time + experiment['duration_of_collection']
+        while time.time() < end_time:  # Read data for the duration of collection
+            for _ in range(int(experiment['sampling_rate'])):  # Read data at the sampling rate
+                data = ljm.eReadNames(handle, num_inputs, names)
+                timestamp = time.time()
+                data_row = {'timestamp': timestamp, 'log_id': experiment['log_id']}
+                data_row.update(dict(zip(names, data)))
+                data_rows.append(data_row)
+            time.sleep(experiment['measurement_interval'])  # Wait for the measurement interval before the next reading
 
-    elapsed_time = end_time - start_time
-    inputs_per_sec = 1000 * num_inputs / elapsed_time
+        # Convert the data rows to a DataFrame and save to a Parquet file
+        df = pd.DataFrame(data_rows)
+        file_path = experiment.get('file_path', f"experiment_{experiment['log_id']}.parquet")
+        df.to_parquet(file_path)
 
-    print(f"\nPython Test: Received {num_inputs} inputs per second: {inputs_per_sec:.2f}")
-except ljm.LJMError as e:
-    print("Failed to communicate with the device:", e)
-except Exception as e:
-    print("Unexpected error:", e)
-finally:
-    # Always close the handle to ensure a clean exit.
-    ljm.close(handle)
+    except ljm.LJMError as e:
+        print("Failed to communicate with the device:", e)
+    except Exception as e:
+        print("Unexpected error:", e)
+    finally:
+        # Close the handle to ensure a clean exit.
+        ljm.close(handle)
+
