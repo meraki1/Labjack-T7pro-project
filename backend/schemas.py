@@ -25,6 +25,7 @@ class ParameterTypeCreate(ParameterTypeBase):
 
 class ParameterTypeRead(ParameterTypeBase):
     param_type_id: int
+    param_type: str
 
     class Config:
         from_attributes = True
