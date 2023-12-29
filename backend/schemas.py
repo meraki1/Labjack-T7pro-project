@@ -136,4 +136,4 @@ class ExperimentStart(BaseModel):
     sampling_rate: float
     duration_of_collection: float
     measurement_interval: float
-    channel_parameters: Dict[str, str]  # Mapping of channel parameters to channels
+    channel_parameters: Dict[str, str]
