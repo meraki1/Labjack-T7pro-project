@@ -6,15 +6,11 @@ from database import get_db
 
 router = APIRouter(tags=["Experiment"])
 
+router = APIRouter()
+
 @router.post("/start_experiment/")
-def start_experiment(experiment_data: ExperimentData, db: Session = Depends(get_db)):
-    # Populate the experiment_parameters, experiment_logs, and experiment_channels tables
-    # You can call the functions you've already defined for this
-    create_experiment_parameters(experiment_data.parameters, db)
-    create_experiment_logs(experiment_data.logs, db)
-    create_experiment_channels(experiment_data.channels, db)
-
-    # Send the information to the data_collecting.py script and start the data collection process
-    start_data_collection(experiment_data)
-
-    return {"detail": "Experiment started successfully"}
+def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
+    # Your code here to start the experiment
+    # You can access the parameters from the `experiment` object
+    # For example: `experiment.log_id`, `experiment.sampling_rate`, etc.
+    pass

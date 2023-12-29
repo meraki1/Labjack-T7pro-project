@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict
 
 # ParameterClass Models
 class ParameterClassBase(BaseModel):
@@ -44,7 +44,7 @@ class DeviceRead(DeviceBase):
 
 # DeviceChannel Models
 class DeviceChannelBase(BaseModel):
-    channel_name: Optional[str]
+    channel_name: str
 
 class DeviceChannelCreate(DeviceChannelBase):
     channel_name: str
@@ -108,8 +108,11 @@ class ExperimentParameterRead(ExperimentParameterBase):
 
 # ParameterChannelRelationship Models
 class ParameterChannelRelationshipBase(BaseModel):
+    relationship_id: Optional[int]
     channel_id: Optional[int]
+    channel_name: Optional[str]
     param_type_id: Optional[int]
+    param_type: Optional[str]
     device_id: Optional[int]
 
 class ParameterChannelRelationshipCreate(ParameterChannelRelationshipBase):
@@ -118,7 +121,18 @@ class ParameterChannelRelationshipCreate(ParameterChannelRelationshipBase):
     device_id: int
 
 class ParameterChannelRelationshipRead(ParameterChannelRelationshipBase):
-    relationship_id: int
+    channel_id: int
+    channel_name: str
+    param_type_id: int
+    param_type: str
 
     class Config:
         from_attributes = True
+
+# Model for validation for data_collecting.py 
+class ExperimentStart(BaseModel):
+    log_id: int
+    sampling_rate: float
+    duration_of_collection: float
+    measurement_interval: float
+    channel_parameters: Dict[str, str]  # Mapping of channel parameters to channels
