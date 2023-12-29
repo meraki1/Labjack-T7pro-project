@@ -2,7 +2,10 @@ annotated-types==0.6.0
 anyio==3.7.1
 click==8.1.7
 colorama==0.4.6
+cramjam==2.7.0
 fastapi==0.106.0
+fastparquet==2023.10.1
+fsspec==2023.12.2
 git-filter-repo==2.38.0
 greenlet==3.0.3
 h11==0.14.0
@@ -10,8 +13,10 @@ idna==3.6
 labjack-ljm==1.23.0
 mysql-connector-python==8.2.0
 numpy==1.26.2
+packaging==23.2
 pandas==2.1.4
 protobuf==4.21.12
+pyarrow==14.0.2
 pydantic==2.5.3
 pydantic_core==2.14.6
 python-dateutil==2.8.2

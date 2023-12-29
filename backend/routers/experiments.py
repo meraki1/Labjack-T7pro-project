@@ -12,8 +12,8 @@ router = APIRouter(tags=["Experiment"])
 def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
     try:
         # Send the data to data_collecting.py and start the experiment
-        tests.start_data_collecting(experiment.dict())
+        data_collecting.start_data_collecting(experiment.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"message": "Experiment data collecting finished successfully"}
+    return {"message": "Experiment started successfully"}

@@ -58,9 +58,9 @@ def start_data_collecting(experiment):
 
                 # Save every 1000 rows
                 if len(data_rows) % 1000 == 0:
-                    file_path = os.path.join(directory, f"experiment_{experiment['log_id']}_{iteration}.parquet")
+                    file_path = os.path.join(directory, f"experiment_{experiment['log_id']}_{iteration}.parquet.gzip")
                     df = pd.DataFrame(data_rows)
-                    df.to_parquet(file_path, index=False)
+                    df.to_parquet(file_path, compression='gzip', index=False)
                     data_rows = []  # Reset the data rows
                     iteration += 1
 
@@ -68,12 +68,9 @@ def start_data_collecting(experiment):
 
         # Save remaining rows
         if data_rows:
-            file_path = os.path.join(directory, f"experiment_{experiment['log_id']}_{iteration}.parquet")
+            file_path = os.path.join(directory, f"experiment_{experiment['log_id']}_{iteration}.parquet.gzip")
             df = pd.DataFrame(data_rows)
-            df.to_parquet(file_path, index=False)
-
-        # After all data has been collected and saved, compress the experiment directory into a ZIP file
-        shutil.make_archive(directory, 'zip', directory)
+            df.to_parquet(file_path, compression='gzip', index=False)
 
     except Exception as e:
         print("Unexpected error:", e)
