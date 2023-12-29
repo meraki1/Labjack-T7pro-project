@@ -7,8 +7,6 @@ from services import data_collecting
 
 router = APIRouter(tags=["Experiment"])
 
-router = APIRouter()
-
 # Send data to data_collecting.py
 @router.post("/start_experiment/")
 def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
@@ -18,4 +16,4 @@ def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"message": "Experiment started successfully"}
+    return {"message": "Experiment data collecting finished successfully"}
