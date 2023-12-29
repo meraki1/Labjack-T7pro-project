@@ -137,4 +137,3 @@ class ExperimentStart(BaseModel):
     duration_of_collection: float
     measurement_interval: float
     channel_parameters: Dict[str, str]
-    file_path: Optional[str] = None

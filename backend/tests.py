@@ -2,8 +2,34 @@ import os
 import time
 import shutil
 import pandas as pd
-from labjack import ljm # Use python311.python.exe Interpretor
 from dotenv import load_dotenv
+from services import data_collecting
+import schemas
+
+# # Define the channels
+# channels = {"AIN0": "Temperature", "AIN1": "Vibration", "AIN2": "Axial Load", "AIN3": "Vertical load", "AIN4": "Rpm"}
+
+# # Create an instance of ExperimentStart
+# experiment = schemas.ExperimentStart(
+#     log_id=1,
+#     sampling_rate=100.0,
+#     duration_of_collection=10.0,
+#     measurement_interval=0.1,
+#     channel_parameters=channels
+# )
+
+# Mock the ljm module
+class MockLJM:
+    def openS(self, device_type, connection_type, identifier):
+        return 1
+
+    def eReadNames(self, handle, num_inputs, names):
+        return [1.0] * num_inputs
+
+    def close(self, handle):
+        pass
+
+ljm = MockLJM()
 
 def start_data_collecting(experiment):
     try:
@@ -49,11 +75,8 @@ def start_data_collecting(experiment):
         # After all data has been collected and saved, compress the experiment directory into a ZIP file
         shutil.make_archive(directory, 'zip', directory)
 
-    except ljm.LJMError as e:
-        print("Failed to communicate with the device:", e)
     except Exception as e:
         print("Unexpected error:", e)
     finally:
         # Close the handle to ensure a clean exit.
         ljm.close(handle)
-

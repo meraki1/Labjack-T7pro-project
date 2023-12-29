@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
-import schemas, models
+import schemas, models, tests
 from database import get_db
 from services import data_collecting
 
@@ -12,7 +12,7 @@ router = APIRouter(tags=["Experiment"])
 def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
     try:
         # Send the data to data_collecting.py and start the experiment
-        data_collecting.start_experiment(experiment.dict())
+        tests.start_data_collecting(experiment.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
