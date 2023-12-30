@@ -31,6 +31,7 @@ class MockLJM:
 
 ljm = MockLJM()
 
+# Test data_collecting.py function
 def start_data_collecting(experiment):
     try:
         # Open the LabJack device
@@ -40,8 +41,8 @@ def start_data_collecting(experiment):
         names = list(experiment['channel_parameters'].keys()) # Channels names
 
         # Create a new directory for the experiment
-        load_dotenv()
-        directory = os.path.join(os.getenv("base_directory"), f"experiment_{experiment['log_id']}")
+        base_directory = os.getenv("base_directory")
+        directory = os.path.join(base_directory, f"experiment_{experiment['log_id']}")
         os.makedirs(directory, exist_ok=True)
 
         data_rows = []

@@ -1,9 +1,7 @@
 import os
 import time
-import shutil
 import pandas as pd
 from labjack import ljm # Use python311.python.exe Interpretor
-from dotenv import load_dotenv
 
 def start_data_collecting(experiment):
     try:
@@ -14,8 +12,8 @@ def start_data_collecting(experiment):
         names = list(experiment['channel_parameters'].keys()) # Channels names
 
         # Create a new directory for the experiment
-        load_dotenv()
-        directory = os.path.join(os.getenv("base_directory"), f"experiment_{experiment['log_id']}")
+        base_directory = os.getenv("base_directory")
+        directory = os.path.join(base_directory, f"experiment_{experiment['log_id']}")
         os.makedirs(directory, exist_ok=True)
 
         data_rows = []
@@ -44,10 +42,7 @@ def start_data_collecting(experiment):
         if data_rows:
             file_path = os.path.join(directory, f"experiment_{experiment['log_id']}_{iteration}.parquet")
             df = pd.DataFrame(data_rows)
-            df.to_parquet(file_path, index=False)
-
-        # After all data has been collected and saved, compress the experiment directory into a ZIP file
-        shutil.make_archive(directory, 'zip', directory)
+            df.to_parquet(file_path, compression='gzip', index=False)
 
     except ljm.LJMError as e:
         print("Failed to communicate with the device:", e)
