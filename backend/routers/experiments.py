@@ -67,4 +67,40 @@ def get_experiment_results(experiment_id: int,
     # Convert the data frame to a dictionary and return it
     return paginated_data.to_dict(orient="records")
 
+# Calculates summary statistics for each parameter in the experiment data
+@router.get("/experiment/{experiment_id}/summary")
+def get_experiment_summary(experiment_id: int):
+    # Similar to your get_experiment_results function, read the data
+    base_directory = os.getenv("base_directory")
+    directory = os.path.join(base_directory, f"experiment_{experiment_id}")
+    if not os.path.exists(directory):
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    file_paths = glob.glob(os.path.join(directory, "*.parquet.gzip"))
+    data_frames = [pd.read_parquet(file_path) for file_path in file_paths]
+    data = pd.concat(data_frames, ignore_index=True)
 
+    # Calculate summary statistics for each parameter
+    summary = data.describe().to_dict()
+
+    return summary
+
+# Returns the data for a specified parameter that can be used for plotting
+@router.get("/experiment/{experiment_id}/plot_data")
+def get_experiment_plot_data(experiment_id: int, parameter: str):
+    # Similar to your get_experiment_results function, read the data
+    base_directory = os.getenv("base_directory")
+    directory = os.path.join(base_directory, f"experiment_{experiment_id}")
+    if not os.path.exists(directory):
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    file_paths = glob.glob(os.path.join(directory, "*.parquet.gzip"))
+    data_frames = [pd.read_parquet(file_path) for file_path in file_paths]
+    data = pd.concat(data_frames, ignore_index=True)
+
+    # Check if the parameter exists in the data
+    if parameter not in data.columns:
+        raise HTTPException(status_code=400, detail=f"Parameter {parameter} not found")
+
+    # Return the data for the specified parameter
+    plot_data = data[['timestamp', parameter]].to_dict(orient="records")
+
+    return plot_data
