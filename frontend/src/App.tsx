@@ -1,26 +1,18 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import PreExperimentView from './views/PreExperimentView';
+import DataCollectionView from './views/DataCollectionView';
+import PostExperimentView from './views/PostExperimentView';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {/* Render your views here */}
+      <PreExperimentView />
+      <DataCollectionView />
+      <PostExperimentView />
     </div>
   );
 }
 
 export default App;
+
