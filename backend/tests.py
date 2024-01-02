@@ -3,7 +3,7 @@ import time
 import shutil
 import pandas as pd
 from dotenv import load_dotenv
-from services import data_collecting
+from services import dataCollecting
 import schemas
 
 # # Define the channels

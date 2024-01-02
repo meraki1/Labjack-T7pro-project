@@ -7,7 +7,7 @@ from database import get_db
 router = APIRouter(tags=["Experiment parameters"])
 
 # Read everything for experiment parameters from parameters_type
-@router.get("/experiment_parameters/", response_model=List[schemas.ParameterTypeRead])
+@router.get("/experimentParameters/", response_model=List[schemas.ParameterTypeRead])
 def read_experiment_parameters(db: Session = Depends(get_db)):
     exp_param_list = db.query(models.ParameterTypes).filter(models.ParameterTypes.param_class_id == 2).all()
     if not exp_param_list:
@@ -15,7 +15,7 @@ def read_experiment_parameters(db: Session = Depends(get_db)):
     return exp_param_list
 
 # Read experiment parameters for a specific experiment
-@router.get("/experiment_parameters/{log_id}", response_model=List[schemas.ExperimentParameterRead])
+@router.get("/experimentParameters/{log_id}", response_model=List[schemas.ExperimentParameterRead])
 def read_experiment_parameters_log_id(log_id: int, db: Session = Depends(get_db)):
     param_list = db.query(models.ExperimentParameters).filter(models.ExperimentParameters.log_id == log_id).all()
     if not param_list:
@@ -23,7 +23,7 @@ def read_experiment_parameters_log_id(log_id: int, db: Session = Depends(get_db)
     return param_list
 
 # Create experiment parameters for a specific experiment
-@router.post("/experiment_parameters/")
+@router.post("/experimentParameters/")
 def create_experiment_parameters(experiment_parameters: List[schemas.ExperimentParameterCreate], db: Session = Depends(get_db)):
     for experiment_parameter in experiment_parameters:
         # Check if the param_type_id exists in the parameter_types table and is experiment parameter

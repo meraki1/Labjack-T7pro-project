@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, MetaData, Table, select
 from typing import Optional
 from datetime import datetime
 import schemas, models, tests
 from database import get_db
-from services import data_collecting
+from services import dataCollecting
 import pandas as pd
 import os
 import glob
@@ -12,12 +13,26 @@ import math
 
 router = APIRouter(tags=["Experiment"])
 
-# Send data to data_collecting.py
+# Get last experiment number
+@router.get('/experiment_number')
+async def fetch_experiment_number(db: Session = Depends(get_db)):
+    # Query the last log_id in the table
+    query = select(models.ExperimentLogs.log_id).order_by(models.ExperimentLogs.log_id.desc()).limit(1)
+    last_log_id = db.execute(query).scalar()
+
+    # If there's no log_id in the table, return 0
+    if last_log_id is None:
+        return {'experimentNumber': 0}
+
+    # Otherwise, return the last log_id plus 1
+    return {'experimentNumber': last_log_id + 1}
+    
+# Send data to dataCollecting.py
 @router.post("/start_experiment/")
 def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
     try:
-        # Send the data to data_collecting.py and start the experiment
-        data_collecting.start_data_collecting(experiment.dict())
+        # Send the data to dataCollecting.py and start the experiment
+        dataCollecting.start_dataCollecting(experiment.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

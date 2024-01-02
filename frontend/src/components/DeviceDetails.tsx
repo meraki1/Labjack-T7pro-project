@@ -1,0 +1,1 @@
+/*Component to showcase device details fetched from the backend*/

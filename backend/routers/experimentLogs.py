@@ -7,7 +7,7 @@ from datetime import datetime
 
 router = APIRouter(tags=["Experiment Logs"])
 
-@router.post("/experiment_logs/")
+@router.post("/experimentLogs/")
 def create_experiment_log(experiment_log: schemas.ExperimentLogCreate, db: Session = Depends(get_db)):
     db_experiment_log = models.ExperimentLogs(comments=experiment_log.comments, 
                                               device_id=experiment_log.device_id,

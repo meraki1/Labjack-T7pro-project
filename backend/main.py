@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated, List
 from sqlalchemy.orm import Session
-from routers import channels, device, experiment_logs, experiment_parameters, experiments
+from routers import channels, device, experimentLogs, experimentParameters, experiments
 import models
 
 app = FastAPI()
@@ -19,6 +19,6 @@ app.add_middleware(
 
 app.include_router(channels.router)
 app.include_router(device.router)
-app.include_router(experiment_logs.router)
-app.include_router(experiment_parameters.router)
+app.include_router(experimentLogs.router)
+app.include_router(experimentParameters.router)
 app.include_router(experiments.router)
