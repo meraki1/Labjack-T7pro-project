@@ -14,7 +14,7 @@ import math
 router = APIRouter(tags=["Experiment"])
 
 # Get last experiment number
-@router.get('/experiment_number')
+@router.get('/experiment_number/')
 async def fetch_experiment_number(db: Session = Depends(get_db)):
     # Query the last log_id in the table
     query = select(models.ExperimentLogs.log_id).order_by(models.ExperimentLogs.log_id.desc()).limit(1)
