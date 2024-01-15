@@ -6,7 +6,7 @@ from database import get_db
 
 router = APIRouter(tags=["Experiment parameters"])
 
-# Read everything for experiment parameters from parameters_type
+# Read only experiment parameters from parameters_type
 @router.get("/experimentParameters/", response_model=List[str])
 def read_experiment_parameters(db: Session = Depends(get_db)):
     exp_param_list = db.query(models.ParameterTypes.param_type).filter(models.ParameterTypes.param_class_id == 2).all()

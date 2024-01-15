@@ -59,12 +59,11 @@ class ParameterChannelRelationships(Base):
     relationship_id = Column(Integer, primary_key=True, autoincrement=True)
     channel_id = Column(Integer, ForeignKey('device_channels.channel_id')) 
     param_type_id = Column(Integer, ForeignKey('parameter_types.param_type_id'))
-    device_id = Column(Integer, ForeignKey('device.device_id'))
+    device_id = Column(Integer)
 
 # Now that all the classes have been defined, we can add the remaining relationships
     
 DeviceChannel.parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='device_channels', uselist=False)
-Device.parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='device')
 Device.experiment_logs = relationship('ExperimentLogs', backref='device')
 ParameterClasses.parameter_types = relationship("ParameterTypes", backref="parameter_classes")
 ParameterTypes.parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='parameter_types')

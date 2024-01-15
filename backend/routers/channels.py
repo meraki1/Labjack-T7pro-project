@@ -7,7 +7,7 @@ from database import get_db
 
 router = APIRouter(tags=["Channels"])
 
-# Read for experiment_channels table
+# Read experiment channels for experiment_channels table for specific experiment log
 @router.get("/channels/{log_id}", response_model=List[schemas.ExperimentChannelRead])
 def read_experiment_channels(log_id: int, db: Session = Depends(get_db)):
     param_channel_list = db.query(models.ExperimentChannels).filter(models.ExperimentChannels.log_id == log_id).all()
@@ -33,8 +33,8 @@ def read_parameter_channel_relationship(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No channels with their parameters found")
     return parameter_channel_relationship
 
-# Read channels from device_channels for a dropdown menu
-@router.get("/device_channels", response_model=List[schemas.DeviceChannelRead])
+# Read channels from device_channels for a list
+@router.get("/channels", response_model=List[schemas.DeviceChannelRead])
 def read_device_channels(db: Session = Depends(get_db)):
     device_channels_list = db.query(models.DeviceChannel).all()
     if not device_channels_list:

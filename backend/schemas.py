@@ -38,10 +38,11 @@ class DeviceCreate(DeviceBase):
     device_name: str
 
 class DeviceRead(DeviceBase):
-    pass
+    device_id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
 
 # DeviceChannel Models
 class DeviceChannelBase(BaseModel):
@@ -123,9 +124,7 @@ class ParameterChannelRelationshipCreate(ParameterChannelRelationshipBase):
 
 class ParameterChannelRelationshipRead(ParameterChannelRelationshipBase):
     channel_id: int
-    channel_name: str
     param_type_id: int
-    param_type: str
 
     class Config:
         from_attributes = True
