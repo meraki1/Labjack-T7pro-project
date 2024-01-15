@@ -7,12 +7,13 @@ from database import get_db
 router = APIRouter(tags=["Experiment parameters"])
 
 # Read everything for experiment parameters from parameters_type
-@router.get("/experimentParameters/", response_model=List[schemas.ParameterTypeRead])
+@router.get("/experimentParameters/", response_model=List[str])
 def read_experiment_parameters(db: Session = Depends(get_db)):
-    exp_param_list = db.query(models.ParameterTypes).filter(models.ParameterTypes.param_class_id == 2).all()
+    exp_param_list = db.query(models.ParameterTypes.param_type).filter(models.ParameterTypes.param_class_id == 2).all()
     if not exp_param_list:
         raise HTTPException(status_code=404, detail="No parameters found")
-    return exp_param_list
+    return [param[0] for param in exp_param_list]
+
 
 # Read experiment parameters for a specific experiment
 @router.get("/experimentParameters/{log_id}", response_model=List[schemas.ExperimentParameterRead])
