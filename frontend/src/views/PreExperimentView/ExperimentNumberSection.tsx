@@ -1,19 +1,28 @@
 // ExperimentNumberSection.tsx
-import { useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
+
+async function fetchExperimentNumber() {
+    const res = await fetch('http://localhost:8000/experiment_number/');
+    if (!res.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return res.json();
+}
 
 export default function ExperimentNumber() {
-    const [experimentNumber, setExperimentNumber] = useState<number | null>(null);
+    const { data: experimentData, status } = useQuery('experimentNumber', fetchExperimentNumber);
 
-    useEffect(() => {
-        fetch('http://localhost:8000/experiment_number/')
-            .then(response => response.json())
-            .then(data => setExperimentNumber(data.experimentNumber))
-            .catch(error => console.error('Error:', error));
-    }, []);
+    if (status === 'loading') {
+        return <div>Loading...</div>;
+    }
+
+    if (status === 'error') {
+        return <div>Error fetching data</div>;
+    }
 
     return (
         <>
-            {experimentNumber !== null && <h1 className="text-4xl mb-4 text-stone-200 font-sans font-bold">Experiment: {experimentNumber}</h1>}
+            {experimentData && experimentData.experimentNumber !== null && <h1 className="text-4xl mb-4 text-stone-200 font-sans font-bold">Experiment: {experimentData.experimentNumber}</h1>}
         </>
     );
 }

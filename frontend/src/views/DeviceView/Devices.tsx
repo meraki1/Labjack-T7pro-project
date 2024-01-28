@@ -91,7 +91,7 @@ const DeviceComponent = () => {
                     Add Device
                 </button>
             </div>
-            <table className="mt-8 w-1/2 text-center mx-auto table-fixed">
+            <table className="mt-8 scroll-mb-3.5 w-1/2 text-center mx-auto table-fixed">
                 <thead>
                     <tr>
                         <th className="w-1/4 overflow-hidden overflow-ellipsis">Device ID</th>
@@ -116,8 +116,8 @@ const DeviceComponent = () => {
                     ))}
                 </tbody>
             </table>
-            <hr className="border-stone-200 w-full mt-80 mb-4" />
-            <div className="mt-auto mb-4">
+            <hr className="border-stone-200 w-full mt-auto" />
+            <div className="mt-4 mb-4">
                 <button 
                     onClick={() => window.location.href='/'} 
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"

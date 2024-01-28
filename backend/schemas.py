@@ -17,7 +17,6 @@ class ParameterClassRead(ParameterClassBase):
 # ParameterType Models
 class ParameterTypeBase(BaseModel):
     param_type: Optional[str]
-    param_class_id: Optional[int]
 
 class ParameterTypeCreate(ParameterTypeBase):
     param_type: str
@@ -108,23 +107,24 @@ class ExperimentParameterRead(ExperimentParameterBase):
     class Config:
         from_attributes = True
 
-# ParameterChannelRelationship Models
-class ParameterChannelRelationshipBase(BaseModel):
-    relationship_id: Optional[int]
-    channel_id: Optional[int]
-    channel_name: Optional[str]
-    param_type_id: Optional[int]
-    param_type: Optional[str]
-    device_id: Optional[int]
 
-class ParameterChannelRelationshipCreate(ParameterChannelRelationshipBase):
+class ParameterChannelRelationshipCreate(BaseModel):
     channel_id: int
     param_type_id: int
     device_id: int
 
-class ParameterChannelRelationshipRead(ParameterChannelRelationshipBase):
-    channel_id: int
-    param_type_id: int
+
+# ParameterChannelRelationship Models
+class ParameterChannelRelationshipBase(BaseModel):
+    relationship_id: Optional[int]
+    channel_id: Optional[int]
+    param_type_id: Optional[int]
+    device_id: Optional[int]
+
+class ParameterChannelRelationshipRead(BaseModel):
+    channel_name: str
+    param_type: str
+    device_name: str
 
     class Config:
         from_attributes = True
