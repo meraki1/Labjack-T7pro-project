@@ -1,65 +1,77 @@
-import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useState } from 'react';
 
 interface Device {
     device_id: number;
     device_name: string;
 }
 
+const fetchDevices = async () => {
+    const response = await fetch('http://localhost:8000/devices');
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+};
+
+const addDevice = async (newDeviceName: string) => {
+    const response = await fetch('http://localhost:8000/devices', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ device_name: newDeviceName }),
+    });
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+};
+
+const updateDevice = async ({ id, newName }: { id: number; newName: string }) => {
+    const response = await fetch(`http://localhost:8000/devices/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ device_name: newName }),
+    });
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+};
+
 const DeviceComponent = () => {
-    const [devices, setDevices] = useState<Device[]>([]);
+    const queryClient = useQueryClient();
+    const { data: devices, isError, isLoading } = useQuery<Device[]>('devices', fetchDevices);
     const [deviceName, setDeviceName] = useState("");
 
-    useEffect(() => {
-        fetch('http://localhost:8000/devices')
-            .then(response => response.json())
-            .then(data => setDevices(data))
-            .catch(error => console.error('Error:', error));
-    }, []);
+    const addMutation = useMutation(addDevice, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('devices');
+        },
+    });
+
+    const updateMutation = useMutation(updateDevice, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('devices');
+        },
+    });
 
     const handleAddDevice = () => {
-        fetch('http://localhost:8000/devices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ device_name: deviceName }),
-        })
-        .then(() => {
-            // Fetch all devices again after a new device is created
-            fetch('http://localhost:8000/devices')
-                .then(response => response.json())
-                .then(data => setDevices(data))
-                .catch(error => console.error('Error:', error));
-            setDeviceName("");
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    };  
+        addMutation.mutate(deviceName);
+        setDeviceName("");
+    };
 
     const handleUpdateDevice = (id: number) => {
         const newName = prompt("Enter new device name");
         if (newName) {
-            fetch(`http://localhost:8000/devices/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ device_name: newName }),
-            })
-            .then(() => {
-                // Fetch all devices again after a new device is created
-                fetch('http://localhost:8000/devices')
-                    .then(response => response.json())
-                    .then(data => setDevices(data))
-                    .catch(error => console.error('Error:', error));
-                setDeviceName("");
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+            updateMutation.mutate({ id, newName });
         }
     };
+
+    if (isLoading) return 'Loading...';
+    if (isError) return 'An error has occurred: ' + addMutation.error;
 
     return (
         <div className="flex flex-col items-center justify-start min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 font-sans text-stone-200 w-full">
@@ -88,7 +100,7 @@ const DeviceComponent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {devices.map(device => (
+                    {devices && devices.map(device => (
                         <tr key={device.device_id}>
                             <td className="overflow-hidden overflow-ellipsis">{device.device_id}</td>
                             <td className="overflow-hidden overflow-ellipsis">{device.device_name}</td>
