@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
@@ -38,3 +38,23 @@ def create_relationship(relationships: List[schemas.ParameterChannelRelationship
         db.refresh(db_relationship)
         db_relationships.append(db_relationship)
     return db_relationships
+
+# Read the parameter_channel_relationship table and get paremeters and channels names for given device id
+@router.get("/relationships", response_model=List[schemas.ParameterChannelRelationshipSectionRead])
+def read_parameter_channel_relationship(device_id: int, db: Session = Depends(get_db)):
+    parameter_channel_relationship = db.query(
+        models.ParameterChannelRelationships.channel_id,
+        models.ParameterChannelRelationships.param_type_id,
+        models.ParameterChannelRelationships.device_id,
+        models.DeviceChannel.channel_name,
+        models.ParameterTypes.param_type
+    ) \
+    .filter(models.ParameterChannelRelationships.device_id == device_id) \
+    .join(models.DeviceChannel, models.ParameterChannelRelationships.channel_id == models.DeviceChannel.channel_id) \
+    .join(models.ParameterTypes, models.ParameterChannelRelationships.param_type_id == models.ParameterTypes.param_type_id) \
+    .all()
+
+    if not parameter_channel_relationship:
+        raise HTTPException(status_code=404, detail="No channels with their parameters found for the specified device")
+
+    return parameter_channel_relationship

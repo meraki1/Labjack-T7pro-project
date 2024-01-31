@@ -117,7 +117,7 @@ const DeviceComponent = () => {
                 </tbody>
             </table>
             <hr className="border-stone-200 w-full mt-auto" />
-            <div className="mt-4 mb-4">
+            <div className="flex mt-4 mb-4 px-4 w-full justify-start items-start">
                 <button 
                     onClick={() => window.location.href='/'} 
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"

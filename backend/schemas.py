@@ -107,12 +107,19 @@ class ExperimentParameterRead(ExperimentParameterBase):
     class Config:
         from_attributes = True
 
-
+# Alone BaseModel needed for create channel parameter relationship
 class ParameterChannelRelationshipCreate(BaseModel):
     channel_id: int
     param_type_id: int
     device_id: int
 
+# Alone BaseModel needed for section for reading channel parameter relationship
+class ParameterChannelRelationshipSectionRead(BaseModel):
+    channel_id: int
+    param_type_id: int
+    device_id: int
+    channel_name: str
+    param_type: str
 
 # ParameterChannelRelationship Models
 class ParameterChannelRelationshipBase(BaseModel):

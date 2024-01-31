@@ -1,7 +1,18 @@
+// DeviceSection.tsx
 import { useQuery } from 'react-query';
 import '../../index.css';
 
-async function fetchDeviceName() {
+interface Device {
+    device_id: string;
+    device_name: string;
+}
+
+interface DeviceSectionProps {
+    selectedDeviceId: string;
+    setSelectedDeviceId: (deviceId: string) => void;
+}
+
+async function fetchDeviceNames() {
     const res = await fetch('http://localhost:8000/devices/');
     if (!res.ok) {
         throw new Error('Network response was not ok');
@@ -9,20 +20,30 @@ async function fetchDeviceName() {
     return res.json();
 }
 
-export default function DeviceSection() {
-    const { data: deviceData, status } = useQuery('deviceName', fetchDeviceName);
+export default function DeviceSection({ selectedDeviceId, setSelectedDeviceId }: DeviceSectionProps) {
+    const { data: deviceData, status } = useQuery<Device[]>('deviceNames', fetchDeviceNames);
 
     if (status === 'loading') {
         return <div>Loading...</div>;
     }
 
-    if (status === 'error') {
+    if (status === 'error' || !deviceData) {
         return <div>Error fetching data</div>;
     }
 
     return (
-        <div className="text-stone-200 font-sans">
-            {deviceData && deviceData.device_name && <h2>Device name: {deviceData.device_name}</h2>}
+        <div className="flex items-center space-x-4 text-stone-200 font-normal ml-4">
+            <h2 className="mr-3">Select a device:</h2>
+            <select 
+                value={selectedDeviceId}
+                onChange={(e) => setSelectedDeviceId(e.target.value)}
+                className="p-1 rounded border border-gray-300 text-gray-900"
+            >
+                <option value="">Please select a device</option>
+                {deviceData.map((device: Device) => (
+                    <option key={device.device_id} value={device.device_id}>{device.device_name}</option>
+                ))}
+            </select>
         </div>
     );
 }

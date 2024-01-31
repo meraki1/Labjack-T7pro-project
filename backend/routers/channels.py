@@ -23,24 +23,6 @@ def read_experiment_channels(log_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No channels with their parameters found for this log_id")
     return param_channel_list
 
-# Read the parameter_channel_relationship table and get paremeters and channels names
-@router.get("/parameter_channel_relationship/", response_model=List[schemas.ParameterChannelRelationshipRead])
-def read_parameter_channel_relationship(db: Session = Depends(get_db)):
-    parameter_channel_relationship = db.query(
-        models.ParameterChannelRelationships.relationship_id,
-        models.ParameterChannelRelationships.channel_id,
-        models.DeviceChannel.channel_name,
-        models.ParameterChannelRelationships.param_type_id,
-        models.ParameterTypes.param_type,
-        models.ParameterChannelRelationships.device_id
-    )\
-    .join(models.DeviceChannel, models.ParameterChannelRelationships.channel_id == models.DeviceChannel.channel_id)\
-    .join(models.ParameterTypes, models.ParameterChannelRelationships.param_type_id == models.ParameterTypes.param_type_id)\
-    .all()
-    if not parameter_channel_relationship:
-        raise HTTPException(status_code=404, detail="No channels with their parameters found")
-    return parameter_channel_relationship
-
 # Read channels from device_channels for a list
 @router.get("/channels", response_model=List[schemas.DeviceChannelRead])
 def read_device_channels(db: Session = Depends(get_db)):

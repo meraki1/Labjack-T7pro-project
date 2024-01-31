@@ -133,7 +133,7 @@ const DeviceSetup = () => {
             <table className="mt-6 w-1/2 text-center mx-auto table-fixed">
                 <thead>
                     <tr>
-                        <th className="w-1/2 overflow-hidden overflow-ellipsis">Channel Name</th>
+                        <th className="w-1/2 overflow-hidden overflow-ellipsis">Channel</th>
                         <th className="w-1/2">Parameter</th>
                     </tr>
                 </thead>
@@ -171,7 +171,7 @@ const DeviceSetup = () => {
                 </div>
             )}
             <hr className="border-t border-stone-200 w-full mt-4 mb-4" />
-            <div className="mt-auto mb-4">
+            <div className="flex mb-4 px-4 w-full justify-start items-start">
                 <button 
                     onClick={() => window.location.href='/'} 
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"
@@ -179,7 +179,6 @@ const DeviceSetup = () => {
                     Back to Home Page
                 </button>
             </div>
-            
         </div>
     );    
 }
