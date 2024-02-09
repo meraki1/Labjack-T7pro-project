@@ -23,7 +23,7 @@ export default function ChannelParametersSection({ selectedDeviceId }: { selecte
 
     if (!selectedDeviceId) {
         return (
-            <div className="text-stone-200 mt-2 mb-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
+            <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
                 <div className="mb-2 p-2 bg-white rounded-lg shadow-md">
                     <p className="font-bold block mb-2 text-md text-gray-700">Select a device to display channel to parameter relationship</p>
                 </div>
@@ -40,7 +40,7 @@ export default function ChannelParametersSection({ selectedDeviceId }: { selecte
     }
 
     return (
-        <div className="text-stone-200 mt-2 mb-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-8 overflow-auto4">
+        <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4 overflow-auto">
             {relationshipData && relationshipData.map((relationship: ParameterChannelRelationship, index: number) => (
                 <div key={index} className="mb-2 p-2 bg-white rounded-lg shadow-md">
                     <label htmlFor={relationship.channel_name} className="font-bold block mb-2 text-md text-gray-700">Channel: {relationship.channel_name}</label>

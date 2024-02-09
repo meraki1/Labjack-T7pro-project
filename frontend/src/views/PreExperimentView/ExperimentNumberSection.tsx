@@ -34,9 +34,7 @@ export default function ExperimentNumber({ experimentNumber, setExperimentNumber
 
     return (
         <div className="flex items-center ml-4">
-        <>
-            {experimentData && experimentData.experimentNumber !== null && <h1 className="text-5xl mb-4 text-stone-200 font-sans font-semibold">Experiment: {experimentData.experimentNumber}</h1>}
-        </>
+            {experimentData && experimentData.experimentNumber !== null && <h1 className="text-4xl mb-2 text-stone-200 font-semibold">Experiment: {experimentData.experimentNumber}</h1>}
         </div>
     );
 }

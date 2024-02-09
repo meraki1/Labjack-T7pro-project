@@ -35,12 +35,21 @@ export default function PreExperimentView() {
     
     return (
         <div className="flex flex-col items-start justify-center min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 text-stone-200 shadow-md w-full font-sans">
-            <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />
-            <DeviceSection selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} />
-            <hr className="border-t border-stone-200 w-full mt-4" />
-            <div className="flex w-full">
+            <div className="flex justify-between w-full mt-2">
+            <div>
+                <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />
+            </div>
+            <div className="flex justify-between mt-2 w-5/12">
+                <DeviceSection selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} />
+            </div>
+        </div>
+            <hr className="border-t border-stone-200 w-full mt-2" />
+            <div className="flex w-full justify-center mt-2">
                 <ExperimentParametersSection />
                 <ChannelParametersSection selectedDeviceId={selectedDeviceId} />
+            </div>
+            <div className="flex w-full mt-3 mb-3 justify-center">
+                <StartMeasurementButton onClick={handleStartMeasurement} />
             </div>
             <hr className="border-t border-stone-200 w-full" />
             <div className="flex mt-4 mb-4 px-4 w-full justify-start items-start">
@@ -49,11 +58,8 @@ export default function PreExperimentView() {
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"
                 >
                     Back to Home Page
-                </button>
-                <div className='flex justify-center items-end'>
-                    <StartMeasurementButton onClick={handleStartMeasurement} />
-                </div>
+                </button>                
             </div>
         </div>
-    );
+    );    
 }

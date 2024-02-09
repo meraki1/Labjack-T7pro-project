@@ -32,12 +32,12 @@ export default function DeviceSection({ selectedDeviceId, setSelectedDeviceId }:
     }
 
     return (
-        <div className="flex items-center space-x-4 text-stone-200 font-normal ml-4">
-            <h2 className="mr-3">Select a device:</h2>
+        <div className="flex items-center justify-center space-x-4 text-stone-200 font-normal ml-4 mr-20">
+            <h2 className="text-lg font-semibold">Select a Device:</h2>
             <select 
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
-                className="p-1 rounded border border-gray-300 text-gray-900"
+                className="p-1 rounded border border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-500"
             >
                 <option value="">Please select a device</option>
                 {deviceData.map((device: Device) => (
