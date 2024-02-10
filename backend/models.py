@@ -17,7 +17,7 @@ class ExperimentLogs(Base):
 
     log_id = Column(Integer, primary_key=True, autoincrement=True)
     start_time = Column(TIMESTAMP, nullable=True)
-    comments = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
     device_id = Column(Integer, ForeignKey('device.device_id')) 
 
 class ExperimentChannels(Base):

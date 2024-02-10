@@ -1,5 +1,15 @@
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+
+# Data for updating tables
+class ExperimentData(BaseModel):
+    param_type_ids: List[int]
+    param_values: List[str]
+    channel_ids: List[int]
+    channel_param_ids: List[int]
+    notes: str
+    device_id: int
+    log_id: int
 
 # ParameterClass Models
 class ParameterClassBase(BaseModel):

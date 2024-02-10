@@ -38,6 +38,33 @@ def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(
 
     return {"message": "Experiment data collected successfully"}
 
+# Function to handle experiment data posting
+@router.post("/experimentDataPosting/")
+def post_experiment_data(experiment_data: schemas.ExperimentData, db: Session = Depends(get_db)):
+    try:
+        # Create experiment log
+        current_time = datetime.now()
+        db_experiment_log = models.ExperimentLogs(start_time=current_time, notes=experiment_data.notes, device_id=experiment_data.device_id)
+        db.add(db_experiment_log)
+        db.commit()
+        db.refresh(db_experiment_log)
+
+        # Create experiment parameters
+        for param_type_id, param_value in zip(experiment_data.param_type_ids, experiment_data.param_values):
+            db_experiment_parameter = models.ExperimentParameters(param_type_id=param_type_id, log_id=db_experiment_log.log_id, param_value=param_value)
+            db.add(db_experiment_parameter)
+
+        # Create experiment channels
+        for channel_id, channel_param_id in zip(experiment_data.channel_ids, experiment_data.channel_param_ids):
+            db_experiment_channel = models.ExperimentChannels(log_id=db_experiment_log.log_id, defined_channel_id=channel_id, defined_param_type_id=channel_param_id)
+            db.add(db_experiment_channel)
+
+        db.commit()
+
+        return {"detail": "Experiment data posted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # View experiment results
 @router.get("/experiment/{experiment_id}/results")
 def get_experiment_results(experiment_id: int, 
