@@ -1,9 +1,19 @@
 // ExperimentParametersSection.tsx
 import '../../index.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { useQuery } from 'react-query';
 
-async function fetchParameters() {
+interface Parameter {
+    param_type: string;
+    param_type_id: number;
+}
+
+interface ExperimentParametersSectionProps {
+    setExperimentParameters: Dispatch<SetStateAction<{ [key: number]: { value: number | string, parameter_name: string } }>>;
+}
+
+async function fetchParameters(): Promise<Parameter[]> {
     const res = await fetch('http://localhost:8000/experimentParameters/');
     if (!res.ok) {
         throw new Error('Network response was not ok');
@@ -13,20 +23,45 @@ async function fetchParameters() {
 
 const parameterRanges: { [key: string]: [number, number] } = {
     'Sampling Rate': [0, 1000],
-    'Duration of Collection': [0, 1000],
-    'Measurement Interval': [0, 1000],
+    'Duration of Collection': [0, 2000],
+    'Measurement Interval': [0, 500],
 };
 
-export default function ExperimentParametersSection() {
-    const [parameterValues, setParameterValues] = useState(() => {
-        const defaultValues: { [key: string]: number } = {};
-        Object.keys(parameterRanges).forEach(param => {
-            defaultValues[param] = (parameterRanges[param][0] + parameterRanges[param][1]) / 2;
-        });
-        return defaultValues;
-    });
-
+const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = ({ setExperimentParameters }) => {
+    const [notes, setNotes] = useState('');
+    const [parameterValues, setParameterValues] = useState<{ [key: number]: { value: number | string, parameter_name: string } }>({});
     const { data: parameters, status } = useQuery('parameters', fetchParameters);
+
+    const notesParameter = parameters?.find(param => param.param_type === 'Notes about Experiment');
+
+    useEffect(() => {
+        if (parameters) {
+            const initialParameterValues: { [key: number]: { value: number | string, parameter_name: string } } = {};
+            parameters.forEach((param: Parameter) => {
+                if (param.param_type !== 'Notes about Experiment') {
+                    const [minValue = 0, maxValue = 1000] = parameterRanges[param.param_type];
+                    const defaultValue = (minValue + maxValue) / 2;
+                    initialParameterValues[param.param_type_id] = { value: defaultValue, parameter_name: param.param_type };
+                }
+            });
+            
+            if (notesParameter) {
+                setExperimentParameters(prevParameters => ({
+                    ...prevParameters,
+                    [notesParameter.param_type_id]: { value: notes || 'No notes for this experiment', parameter_name: notesParameter.param_type },
+                    ...initialParameterValues,
+                }));
+            } else {
+                setExperimentParameters(prevParameters => ({
+                    ...prevParameters,
+                    ...initialParameterValues,
+                }));
+            }
+            
+            setParameterValues(initialParameterValues);
+        }
+    }, [parameters, notes, setExperimentParameters, notesParameter]);
+    
 
     if (status === 'loading') {
         return <div>Loading...</div>;
@@ -36,42 +71,61 @@ export default function ExperimentParametersSection() {
         return <div>Error fetching data</div>;
     }
 
-    const handleParameterChange = (param: string, value: number) => {
+    const handleParameterChange = (paramId: number, value: number) => {
         setParameterValues(prevValues => ({
             ...prevValues,
-            [param]: value,
+            [paramId]: { value: value, parameter_name: parameters?.find(param => param.param_type_id === paramId)?.param_type || '' },
         }));
-    };
+    };    
 
     return (
         <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
-            {parameters.map(({ param_type, param_type_id }: { param_type: string, param_type_id: number }, index: number) => (
-                <div key={index} className="mb-2 p-2 bg-white rounded-lg shadow-md">
-                    <label htmlFor={param_type} className="font-bold block mb-2 text-md text-gray-700">{param_type}</label>
-                    {param_type !== 'Notes about Experiment' ? (
-                        <div className="relative">
-                            <input
-                                type="range"
-                                id={param_type}
-                                name={param_type}
-                                min={parameterRanges[param_type][0].toString()}
-                                max={parameterRanges[param_type][1].toString()}
-                                step={(param_type === 'Measurement Interval' ? 10 : 50).toString()}
-                                defaultValue={((parameterRanges[param_type][0] + parameterRanges[param_type][1]) / 2).toString()}
-                                className="w-full h-4 bg-cyan-200 rounded-full mb-2"
-                                onChange={e => handleParameterChange(param_type, Number(e.target.value))}
-                            />
-                            <div className="flex justify-between text-gray-600">
-                                <div>{parameterRanges[param_type][0].toString()}</div>
-                                <div>Current value: {parameterValues[param_type]}</div>
-                                <div>{parameterRanges[param_type][1].toString()}</div>
+            {parameters?.map(({ param_type, param_type_id }: Parameter) => {
+                if (param_type !== 'Notes about Experiment') {
+                    const [minValue = 0, maxValue = 1000] = parameterRanges[param_type];
+                    const defaultValue = (minValue + maxValue) / 2;
+                    return (
+                        <div key={param_type_id} className="mb-2 p-2 bg-white rounded-lg shadow-md">
+                            <label htmlFor={param_type} className="font-bold block mb-2 text-md text-gray-700">{param_type}</label>
+                            <div className="relative">
+                                <input
+                                    type="range"
+                                    id={param_type}
+                                    name={param_type}
+                                    min={minValue.toString()}
+                                    max={maxValue.toString()}
+                                    step={(param_type === 'Measurement Interval') ? '10' : '50'}
+                                    defaultValue={defaultValue.toString()}
+                                    className="w-full h-4 bg-cyan-200 rounded-full mb-2"
+                                    onChange={e => handleParameterChange(param_type_id, Number(e.target.value))}
+                                />
+                                <div className="flex justify-between text-gray-600">
+                                    <div>{minValue}</div>
+                                    <div>Current value: {parameterValues[param_type_id]?.value}</div>
+                                    <div>{maxValue}</div>
+                                </div>
                             </div>
                         </div>
-                    ) : (
-                        <textarea id={param_type} name={param_type} rows={4} className="w-full p-2 border border-gray-200 rounded shadow-sm text-wrap text-justify text-gray-900 font-sans resize-none overflow-auto" />
-                    )}
+                    );
+                }
+                return null;
+            })}
+            {notesParameter && (
+                <div key={notesParameter.param_type_id} className="mb-2 p-2 bg-white rounded-lg shadow-md">
+                    <label htmlFor={notesParameter.param_type} className="font-bold block mb-2 text-md text-gray-700">{notesParameter.param_type}</label>
+                    <textarea
+                        id={notesParameter ? notesParameter.param_type_id.toString() : ''}
+                        name={notesParameter ? notesParameter.param_type : ''}
+                        rows={4}
+                        className="w-full p-2 border border-gray-200 rounded shadow-sm text-wrap text-justify text-gray-900 font-sans resize-none overflow-auto"
+                        defaultValue={notes || 'No notes for this experiment'}
+                        onChange={e => setNotes(e.target.value)}
+                        placeholder="Enter your notes here..."
+                    />
                 </div>
-            ))}
+            )}
         </div>
-    );    
-}
+    );
+};
+
+export default ExperimentParametersSection;

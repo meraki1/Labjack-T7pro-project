@@ -22,7 +22,7 @@ async def fetch_experiment_number(db: Session = Depends(get_db)):
 
     # If there's no log_id in the table, return 0
     if last_log_id is None:
-        return {'experimentNumber': 0}
+        return {'experimentNumber': 1}
 
     # Otherwise, return the last log_id plus 1
     return {'experimentNumber': last_log_id + 1}
@@ -39,32 +39,44 @@ def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(
     return {"message": "Experiment data collected successfully"}
 
 # Function to handle experiment data posting
-@router.post("/experimentDataPosting/")
-def post_experiment_data(experiment_data: schemas.ExperimentData, db: Session = Depends(get_db)):
+@router.post("/experimentDataCreate/")
+def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Session = Depends(get_db)):
     try:
         # Create experiment log
         current_time = datetime.now()
-        db_experiment_log = models.ExperimentLogs(start_time=current_time, notes=experiment_data.notes, device_id=experiment_data.device_id)
+        db_experiment_log = models.ExperimentLogs(
+            start_time=current_time,
+            notes=experiment_data.experiment_parameters[9].value if 9 in experiment_data.experiment_parameters else None,
+            device_id=experiment_data.device_id
+        )
         db.add(db_experiment_log)
         db.commit()
         db.refresh(db_experiment_log)
 
         # Create experiment parameters
-        for param_type_id, param_value in zip(experiment_data.param_type_ids, experiment_data.param_values):
-            db_experiment_parameter = models.ExperimentParameters(param_type_id=param_type_id, log_id=db_experiment_log.log_id, param_value=param_value)
-            db.add(db_experiment_parameter)
+        for param_type_id, param in experiment_data.experiment_parameters.items():
+            if param.parameter_name != 'Notes about Experiment':
+                db_experiment_parameter = models.ExperimentParameters(
+                    param_type_id=param_type_id,
+                    log_id=db_experiment_log.log_id,
+                    param_value=int(param.value) if isinstance(param.value, str) and param.value.isdigit() else param.value
+                )
+                db.add(db_experiment_parameter)
 
         # Create experiment channels
-        for channel_id, channel_param_id in zip(experiment_data.channel_ids, experiment_data.channel_param_ids):
-            db_experiment_channel = models.ExperimentChannels(log_id=db_experiment_log.log_id, defined_channel_id=channel_id, defined_param_type_id=channel_param_id)
+        for channel in experiment_data.channel_parameters:
+            db_experiment_channel = models.ExperimentChannels(
+                log_id=db_experiment_log.log_id,
+                defined_channel_id=channel.channel_id,
+                defined_param_type_id=channel.param_type_id
+            )
             db.add(db_experiment_channel)
-
         db.commit()
 
-        return {"detail": "Experiment data posted successfully"}
+        return {"message": "Experiment data, parameters, and channels created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # View experiment results
 @router.get("/experiment/{experiment_id}/results")
 def get_experiment_results(experiment_id: int, 

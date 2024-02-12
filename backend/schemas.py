@@ -1,15 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 
-# Data for updating tables
-class ExperimentData(BaseModel):
-    param_type_ids: List[int]
-    param_values: List[str]
-    channel_ids: List[int]
-    channel_param_ids: List[int]
-    notes: str
+class ChannelParameter(BaseModel):
+    channel_id: int
+    param_type_id: int
     device_id: int
-    log_id: int
+    channel_name: str
+    param_type: str
+
+class ExperimentParameter(BaseModel):
+    value: Union[int, str]
+    parameter_name: str
+
+class ExperimentUpdate(BaseModel):
+    channel_parameters: List[ChannelParameter]
+    device_id: int
+    experiment_parameters: dict[int, ExperimentParameter]
 
 # ParameterClass Models
 class ParameterClassBase(BaseModel):

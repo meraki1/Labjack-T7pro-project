@@ -8,25 +8,31 @@ import ChannelParametersSection from './ChannelParametersSection';
 import StartMeasurementButton from '../../components/StartMeasurementButton';
 
 export default function PreExperimentView() {
-    const [selectedDeviceId, setSelectedDeviceId] = useState('');
+    const [selectedDeviceId, setSelectedDeviceId] = useState(0);
     const [experimentNumber, setExperimentNumber] = useState(0);
+    const [experimentParameters, setExperimentParameters] = useState({});
+    const [channelParameters, setChannelParameters] = useState({});
 
     function handleStartMeasurement() {
-        // Replace with your actual backend API call
-        fetch('http://localhost:8000/start_measurement/', {
+        const experimentData = {
+            device_id: selectedDeviceId,
+            experiment_parameters: experimentParameters,
+            channel_parameters: channelParameters,
+        };
+
+        console.log('Sending the following data to the backend:', experimentData);
+
+        // Replace with your actual backend API endpoint
+        fetch('http://localhost:8000/experimentDataCreate/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                deviceId: selectedDeviceId,
-                experimentNumber: experimentNumber,
-                // Include other parameters here
-            }),
+            body: JSON.stringify(experimentData),
         })
         .then(response => response.json())
-        .then(data => {
-            // Handle the response data
+        .then(() => {
+
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -45,8 +51,8 @@ export default function PreExperimentView() {
         </div>
             <hr className="border-t border-stone-200 w-full mt-2" />
             <div className="flex w-full justify-center mt-2">
-                <ExperimentParametersSection />
-                <ChannelParametersSection selectedDeviceId={selectedDeviceId} />
+                <ExperimentParametersSection setExperimentParameters={setExperimentParameters} />
+                <ChannelParametersSection selectedDeviceId={selectedDeviceId} setChannelParameters={setChannelParameters} />
             </div>
             <div className="flex w-full mt-3 mb-3 justify-center">
                 <StartMeasurementButton onClick={handleStartMeasurement} />

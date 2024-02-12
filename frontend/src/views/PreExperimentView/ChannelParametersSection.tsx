@@ -1,4 +1,5 @@
 // ChannelParametersSection.tsx
+import { useEffect } from 'react';
 import { useQuery } from 'react-query';
 import '../../index.css';
 
@@ -10,7 +11,12 @@ interface ParameterChannelRelationship {
     param_type: string;
 }
 
-async function fetchParameterChannelRelationship(device_id: string) {
+interface ChannelParametersSectionProps {
+    selectedDeviceId: number;
+    setChannelParameters: (value: ParameterChannelRelationship[]) => void;
+}
+
+async function fetchParameterChannelRelationship(device_id: number) {
     const res = await fetch(`http://localhost:8000/relationships?device_id=${device_id}`);
     if (!res.ok) {
         throw new Error('Network response was not ok');
@@ -18,9 +24,15 @@ async function fetchParameterChannelRelationship(device_id: string) {
     return res.json();
 }
 
-export default function ChannelParametersSection({ selectedDeviceId }: { selectedDeviceId: string }) {
+const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ selectedDeviceId, setChannelParameters }) => {
     const { data: relationshipData, status } = useQuery<ParameterChannelRelationship[]>(['parameterChannelRelationship', selectedDeviceId], () => fetchParameterChannelRelationship(selectedDeviceId), { enabled: !!selectedDeviceId });
 
+    useEffect(() => {
+        if (relationshipData) {
+            setChannelParameters(relationshipData);
+        }
+    }, [relationshipData, setChannelParameters]);
+    
     if (!selectedDeviceId) {
         return (
             <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
@@ -49,4 +61,6 @@ export default function ChannelParametersSection({ selectedDeviceId }: { selecte
             ))}
         </div>
     );    
-}
+};
+
+export default ChannelParametersSection;

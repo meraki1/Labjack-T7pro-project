@@ -15,7 +15,7 @@ async function fetchExperimentNumber() {
     return res.json();
 }
 
-export default function ExperimentNumber({ experimentNumber, setExperimentNumber }: ExperimentNumberProps) {
+export default function ExperimentNumber({ setExperimentNumber }: ExperimentNumberProps) {
     const { data: experimentData, status } = useQuery('experimentNumber', fetchExperimentNumber);
 
     useEffect(() => {

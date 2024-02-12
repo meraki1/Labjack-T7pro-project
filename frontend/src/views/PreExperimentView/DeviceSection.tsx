@@ -1,15 +1,15 @@
 // DeviceSection.tsx
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query'; // Import useQueryClient
 import '../../index.css';
 
 interface Device {
-    device_id: string;
+    device_id: number;
     device_name: string;
 }
 
 interface DeviceSectionProps {
-    selectedDeviceId: string;
-    setSelectedDeviceId: (deviceId: string) => void;
+    selectedDeviceId: number;
+    setSelectedDeviceId: (deviceId: number) => void;
 }
 
 async function fetchDeviceNames() {
@@ -20,8 +20,23 @@ async function fetchDeviceNames() {
     return res.json();
 }
 
+async function fetchParameterChannelRelationship(device_id: number) {
+    const res = await fetch(`http://localhost:8000/relationships?device_id=${device_id}`);
+    if (!res.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return res.json();
+}
+
 export default function DeviceSection({ selectedDeviceId, setSelectedDeviceId }: DeviceSectionProps) {
+    const queryClient = useQueryClient();
     const { data: deviceData, status } = useQuery<Device[]>('deviceNames', fetchDeviceNames);
+
+    const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const deviceId = parseInt(e.target.value);
+        setSelectedDeviceId(deviceId);
+        queryClient.prefetchQuery(['parameterChannelRelationship', deviceId], () => fetchParameterChannelRelationship(deviceId));
+    };
 
     if (status === 'loading') {
         return <div>Loading...</div>;
@@ -36,7 +51,7 @@ export default function DeviceSection({ selectedDeviceId, setSelectedDeviceId }:
             <h2 className="text-lg font-semibold">Select a Device:</h2>
             <select 
                 value={selectedDeviceId}
-                onChange={(e) => setSelectedDeviceId(e.target.value)}
+                onChange={handleDeviceChange}
                 className="p-1 rounded border border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-500"
             >
                 <option value="">Please select a device</option>
