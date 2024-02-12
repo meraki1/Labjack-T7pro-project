@@ -7,6 +7,8 @@ import { useQuery } from 'react-query';
 interface Parameter {
     param_type: string;
     param_type_id: number;
+    minValue: number;
+    maxValue: number;
 }
 
 interface ExperimentParametersSectionProps {
@@ -23,7 +25,7 @@ async function fetchParameters(): Promise<Parameter[]> {
 
 const parameterRanges: { [key: string]: [number, number] } = {
     'Sampling Rate': [0, 1000],
-    'Duration of Collection': [0, 10000],
+    'Duration of Collection': [0, 100],
     'Measurement Interval': [0, 10],
 };
 
@@ -39,8 +41,9 @@ const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = 
             const initialParameterValues: { [key: number]: { value: number | string, parameter_name: string } } = {};
             parameters.forEach((param: Parameter) => {
                 if (param.param_type !== 'Notes about Experiment') {
-                    const [minValue = 0, maxValue = 1000] = parameterRanges[param.param_type];
-                    const defaultValue = (minValue + maxValue) / 2;
+                    const [minValue, maxValue] = parameterRanges[param.param_type];
+                    const middleValue = (minValue + maxValue) / 2; 
+                    const defaultValue = middleValue;
                     initialParameterValues[param.param_type_id] = { value: defaultValue, parameter_name: param.param_type };
                 }
             });
@@ -79,11 +82,12 @@ const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = 
     };    
 
     return (
-        <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
+        <div className="text-stone-200 mt-2 w-1/3 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
             {parameters?.map(({ param_type, param_type_id }: Parameter) => {
                 if (param_type !== 'Notes about Experiment') {
-                    const [minValue = 0, maxValue = 1000] = parameterRanges[param_type];
-                    const defaultValue = (minValue + maxValue) / 2;
+                    const [minValue, maxValue] = parameterRanges[param_type];
+                    const defaultValue = parameterValues[param_type_id]?.value ?? (minValue + maxValue) / 2; // Use stored value or middle value
+                    const stepSize = (maxValue - minValue) / 20; // Use stored step size or calculated step size
                     return (
                         <div key={param_type_id} className="mb-2 p-2 bg-white rounded-lg shadow-md">
                             <label htmlFor={param_type} className="font-bold block mb-2 text-md text-gray-700">{param_type}</label>
@@ -94,7 +98,7 @@ const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = 
                                     name={param_type}
                                     min={minValue.toString()}
                                     max={maxValue.toString()}
-                                    step={(param_type === 'Measurement Interval') ? '10' : '50'}
+                                    step={stepSize.toString()} // Use calculated step size
                                     defaultValue={defaultValue.toString()}
                                     className="w-full h-4 bg-cyan-200 rounded-full mb-2"
                                     onChange={e => handleParameterChange(param_type_id, Number(e.target.value))}
@@ -118,9 +122,10 @@ const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = 
                         name={notesParameter ? notesParameter.param_type : ''}
                         rows={4}
                         className="w-full p-2 border border-gray-200 rounded shadow-sm text-wrap text-justify text-gray-900 font-sans resize-none overflow-auto"
-                        defaultValue={notes || 'No notes for this experiment'}
+                        placeholder={notes || 'No notes for this experiment.'}
+                        onFocus={(e) => e.target.placeholder = ''}
+                        onBlur={(e) => e.target.placeholder = notes || 'No notes for this experiment.'}
                         onChange={e => setNotes(e.target.value)}
-                        placeholder="Enter your notes here..."
                     />
                 </div>
             )}

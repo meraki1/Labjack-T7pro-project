@@ -45,7 +45,7 @@ def start_data_collecting(experiment):
                 data_row.update(dict(zip(names, data)))
                 data_rows.append(data_row)
 
-                if len(data_rows) % 1000 == 0:
+                if len(data_rows) % 10000 == 0:
                     file_path = os.path.join(directory, f"experiment_{experiment.log_id}_{iteration}.parquet.gzip")
                     df = pd.DataFrame(data_rows)
                     df.to_parquet(file_path, compression='gzip', index=False)

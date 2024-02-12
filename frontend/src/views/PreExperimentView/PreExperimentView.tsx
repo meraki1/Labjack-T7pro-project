@@ -13,53 +13,49 @@
         const [experimentParameters, setExperimentParameters] = useState({});
         const [channelParameters, setChannelParameters] = useState({});
 
-        function handleStartMeasurement() {
+        async function handleStartMeasurement(): Promise<boolean> {
             const experimentData = {
                 device_id: selectedDeviceId,
                 experiment_parameters: experimentParameters,
                 channel_parameters: channelParameters,
             };
-        
+    
             const dataForCollecting = {
                 log_id: experimentNumber,
                 channel_parameters: channelParameters,
                 experiment_parameters: experimentParameters,
             };
-        
-            console.log(experimentData)
-            console.log(dataForCollecting)
-            
-            Promise.all([
-                // Send experiment data to start the experiment
-                fetch('http://localhost:8000/start_experiment/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(dataForCollecting),
-                }).then(response => response.json()),
-                // Updating the tables in the database with experiment data
-                fetch('http://localhost:8000/experimentDataCreate/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(experimentData),
-                }).then(response => response.json())
-            ]).then(([startExperimentResponse, experimentDataResponse]) => {
+    
+            try {
+                const [startExperimentResponse, experimentDataResponse] = await Promise.all([
+                    // Send experiment data to start the experiment
+                    fetch('http://localhost:8000/start_experiment/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(dataForCollecting),
+                    }).then(response => response.json()),
+                    // Updating the tables in the database with experiment data
+                    fetch('http://localhost:8000/experimentDataCreate/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(experimentData),
+                    }).then(response => response.json())
+                ]);
+    
                 // Check if both requests were successful
-                if (startExperimentResponse.message === 'Experiment data collected successfully' &&
-                    experimentDataResponse.message === 'Experiment data, parameters, and channels created successfully') {
-                    // Both requests were successful
-                    console.log('Both requests were successful');
-                } else {
-                    // At least one request failed
-                    console.error('At least one request failed');
-                }
-            }).catch(error => {
+                return (
+                    startExperimentResponse.message === 'Experiment data collected successfully' &&
+                    experimentDataResponse.message === 'Experiment data, parameters, and channels created successfully'
+                );
+            } catch (error) {
                 // Handle errors for both fetch requests
                 console.error('Error:', error);
-            });
+                return false; // Return false in case of an error
+            }
         }
             
         return (
@@ -68,7 +64,7 @@
                 <div>
                     <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />
                 </div>
-                <div className="flex justify-between mt-2 w-5/12">
+                <div className="flex justify-between mt-2 mr-20 w-2/5">
                     <DeviceSection selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} />
                 </div>
             </div>
