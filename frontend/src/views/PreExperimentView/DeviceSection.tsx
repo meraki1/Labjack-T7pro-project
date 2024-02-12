@@ -1,5 +1,4 @@
-// DeviceSection.tsx
-import { useQuery, useQueryClient } from 'react-query'; // Import useQueryClient
+import { useQuery } from 'react-query';
 import '../../index.css';
 
 interface Device {
@@ -20,22 +19,12 @@ async function fetchDeviceNames() {
     return res.json();
 }
 
-async function fetchParameterChannelRelationship(device_id: number) {
-    const res = await fetch(`http://localhost:8000/relationships?device_id=${device_id}`);
-    if (!res.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return res.json();
-}
-
 export default function DeviceSection({ selectedDeviceId, setSelectedDeviceId }: DeviceSectionProps) {
-    const queryClient = useQueryClient();
     const { data: deviceData, status } = useQuery<Device[]>('deviceNames', fetchDeviceNames);
 
     const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const deviceId = parseInt(e.target.value);
         setSelectedDeviceId(deviceId);
-        queryClient.prefetchQuery(['parameterChannelRelationship', deviceId], () => fetchParameterChannelRelationship(deviceId));
     };
 
     if (status === 'loading') {

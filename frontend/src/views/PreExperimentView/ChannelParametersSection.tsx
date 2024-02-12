@@ -13,19 +13,17 @@ interface ParameterChannelRelationship {
 
 interface ChannelParametersSectionProps {
     selectedDeviceId: number;
-    setChannelParameters: (value: ParameterChannelRelationship[]) => void;
-}
-
-async function fetchParameterChannelRelationship(device_id: number) {
-    const res = await fetch(`http://localhost:8000/relationships?device_id=${device_id}`);
-    if (!res.ok) {
-        throw new Error('Network response was not ok');
-    }
-    return res.json();
+    setChannelParameters: (data: ParameterChannelRelationship[]) => void; // Add this line
 }
 
 const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ selectedDeviceId, setChannelParameters }) => {
-    const { data: relationshipData, status } = useQuery<ParameterChannelRelationship[]>(['parameterChannelRelationship', selectedDeviceId], () => fetchParameterChannelRelationship(selectedDeviceId), { enabled: !!selectedDeviceId });
+    const { data: relationshipData, status, refetch } = useQuery<ParameterChannelRelationship[]>(['parameterChannelRelationship', selectedDeviceId], () => fetchParameterChannelRelationship(selectedDeviceId), { enabled: !!selectedDeviceId });
+    
+    useEffect(() => {
+        if (selectedDeviceId) {
+            refetch();
+        }
+    }, [selectedDeviceId, refetch]);
 
     useEffect(() => {
         if (relationshipData) {
@@ -33,6 +31,14 @@ const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ sel
         }
     }, [relationshipData, setChannelParameters]);
     
+    async function fetchParameterChannelRelationship(device_id: number) {
+        const res = await fetch(`http://localhost:8000/relationships?device_id=${device_id}`);
+        if (!res.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return res.json();
+    }
+
     if (!selectedDeviceId) {
         return (
             <div className="text-stone-200 mt-2 w-2/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">

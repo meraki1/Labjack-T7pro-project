@@ -1,7 +1,19 @@
 import os
 import time
 import pandas as pd
-from labjack import ljm
+
+# Mock the ljm module
+class MockLJM:
+    def openS(self, device_type, connection_type, identifier):
+        return 1
+
+    def eReadNames(self, handle, num_inputs, names):
+        return [1.0] * num_inputs
+
+    def close(self, handle):
+        pass
+
+ljm = MockLJM()
 
 def start_data_collecting(experiment):
     try:
@@ -47,14 +59,11 @@ def start_data_collecting(experiment):
             df = pd.DataFrame(data_rows)
             df.to_parquet(file_path, compression='gzip', index=False)
 
-        return True  # Data collection completed successfully
+        return True 
 
-    except ljm.LJMError as e:
-        print("Failed to communicate with the device:", e)
-        return False
     except Exception as e:
         print("Error during data collection:", e)
         return False
-    
+
     finally:
         ljm.close(handle)

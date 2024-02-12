@@ -153,9 +153,18 @@ class ParameterChannelRelationshipRead(BaseModel):
         from_attributes = True
 
 # Model for validation for data_collecting.py 
-class ExperimentStart(BaseModel):
+class ChannelParameterDataCollecting(BaseModel):
+    channel_id: int
+    param_type_id: int
+    device_id: int
+    channel_name: str
+    param_type: str
+
+class ExperimentParameterDataCollecting(BaseModel):
+    value: Union[int, str]
+    parameter_name: str
+
+class ExperimentStartDataCollecting(BaseModel):
     log_id: int
-    sampling_rate: float
-    duration_of_collection: float
-    measurement_interval: float
-    channel_parameters: Dict[str, str]
+    channel_parameters: List[ChannelParameterDataCollecting] 
+    experiment_parameters: dict[int, ExperimentParameterDataCollecting]

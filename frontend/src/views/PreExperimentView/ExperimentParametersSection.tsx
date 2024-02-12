@@ -23,8 +23,8 @@ async function fetchParameters(): Promise<Parameter[]> {
 
 const parameterRanges: { [key: string]: [number, number] } = {
     'Sampling Rate': [0, 1000],
-    'Duration of Collection': [0, 2000],
-    'Measurement Interval': [0, 500],
+    'Duration of Collection': [0, 10000],
+    'Measurement Interval': [0, 10],
 };
 
 const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = ({ setExperimentParameters }) => {

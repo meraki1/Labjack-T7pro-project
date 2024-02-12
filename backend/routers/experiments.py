@@ -6,6 +6,7 @@ from datetime import datetime
 import schemas, models, tests
 from database import get_db
 from services import dataCollecting
+from tests import dataCollectingTest
 import pandas as pd
 import os
 import glob
@@ -29,14 +30,17 @@ async def fetch_experiment_number(db: Session = Depends(get_db)):
     
 # Send data to dataCollecting.py
 @router.post("/start_experiment/")
-def start_experiment(experiment: schemas.ExperimentStart, db: Session = Depends(get_db)):
+def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Session = Depends(get_db)):
     try:
-        # Send the data to dataCollecting.py and start the experiment
-        dataCollecting.start_dataCollecting(experiment.dict())
+        # Call the start_data_collecting function from dataCollecting.py
+        success = dataCollecting.start_data_collecting(experiment)
+        if success:
+            return {"message": "Experiment data collected successfully"}
+        else:
+            return {"message": "Failed to collect experiment data"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-    return {"message": "Experiment data collected successfully"}
 
 # Function to handle experiment data posting
 @router.post("/experimentDataCreate/")
