@@ -58,3 +58,25 @@ def read_parameter_channel_relationship(device_id: int, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="No channels with their parameters found for the specified device")
 
     return parameter_channel_relationship
+
+# Route to get channel parameters for a specific experiment
+@router.get("/experiment/{experiment_id}/channel-parameters", response_model=schemas.ExperimentChannelsHeaders)
+def get_channel_parameters(experiment_id: int, db: Session = Depends(get_db)):
+    # Query the database to get channel IDs and parameter types for the specified experiment_id
+    experiment_channels = db.query(models.ExperimentChannels).filter(models.ExperimentChannels.log_id == experiment_id).all()
+
+    channel_parameters = {}
+    for channel in experiment_channels:
+        # Query the database to get channel name using defined_channel_id
+        device_channel = db.query(models.DeviceChannel).filter(models.DeviceChannel.channel_id == channel.defined_channel_id).first()
+        if device_channel:
+            # For each channel, query the parameter_types table to get the parameter name
+            parameter = db.query(models.ParameterTypes).filter(models.ParameterTypes.param_type_id == channel.defined_param_type_id).first()
+            if parameter:
+                channel_parameters[device_channel.channel_name] = parameter.param_type
+            else:
+                channel_parameters[device_channel.channel_name] = "Unknown"
+        else:
+            channel_parameters[str(channel.defined_channel_id)] = "Unknown"
+
+    return schemas.ExperimentChannelsHeaders(channel_parameters=channel_parameters)

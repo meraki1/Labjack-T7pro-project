@@ -43,7 +43,7 @@ def start_data_collecting(experiment):
             time.sleep(measurement_interval)
 
         if data_rows:
-            file_path = os.path.join(directory, f"experiment_{experiment.log_id}_{iteration}.parquet")
+            file_path = os.path.join(directory, f"experiment_{experiment.log_id}_{iteration}.parquet.gzip")
             df = pd.DataFrame(data_rows)
             df.to_parquet(file_path, compression='gzip', index=False)
 

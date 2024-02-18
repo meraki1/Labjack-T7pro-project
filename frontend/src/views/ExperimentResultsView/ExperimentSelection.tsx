@@ -4,8 +4,8 @@ import { useQuery } from 'react-query';
 import Navbar from '../../components/Navbar';
 import BackToHomeButton from '../../components/BackToHomePageButton';
 import ViewDetailsButton from '../../components/ViewDetailsButton';
-import Pagination from '../../components/Pagination';
-import TimeFilter from '../../components/TimeFilter'; 
+import Pagination from '../../components/PaginationResultsSelection';
+import TimeFilter from '../../components/TimeFilterResultsSelection'; 
 
 interface Experiment {
     experiment_id: number;

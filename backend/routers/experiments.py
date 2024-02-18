@@ -82,11 +82,11 @@ def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Sessio
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# View experiment results
+# View experiment results for table
 @router.get("/experiment/{experiment_id}/results")
 def get_experiment_results(experiment_id: int, 
                            page: int = Query(1, ge=1), 
-                           per_page: Optional[int] = Query(100, ge=1)):
+                           per_page: int = Query(100, ge=1)):
     # Define the directory where the experiment results are stored
     base_directory = os.getenv("base_directory")
     directory = os.path.join(base_directory, f"experiment_{experiment_id}")
@@ -96,31 +96,29 @@ def get_experiment_results(experiment_id: int,
         raise HTTPException(status_code=404, detail="Experiment not found")
 
     # Read all Parquet files in the directory
-    file_paths = glob.glob(os.path.join(directory, "*.parquet.gzip"))
-    data_frames = [pd.read_parquet(file_path) for file_path in file_paths]
+    file_paths = glob.glob(os.path.join(directory, f"experiment_{experiment_id}_*.parquet.gzip"))
+    
+    # Check if any files exist
+    if not file_paths:
+        raise HTTPException(status_code=404, detail="No data found for the experiment")
+
+    # Initialize an empty list to store data frames
+    data_frames = []
+
+    # Read each Parquet file into a data frame and append to the list
+    for file_path in file_paths:
+        df = pd.read_parquet(file_path)
+        data_frames.append(df)
 
     # Concatenate all data frames into one
     data = pd.concat(data_frames, ignore_index=True)
 
     # Convert Unix timestamp to datetime
-    data['timestamp'] = data['timestamp'].apply(lambda x: datetime.fromtimestamp(x))
+    data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s')
 
-    # Calculate total number of records and pages available
-    total_records = len(data)
-    total_pages = math.ceil(total_records / per_page)
-
-    # Validate requested page number
-    if page > total_pages:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid page number: Maximum page number is {total_pages}"
-        )
-
-    # Calculate start and end for slicing the data
+    # Apply pagination
     start = (page - 1) * per_page
     end = start + per_page
-
-    # Slice the data
     paginated_data = data.iloc[start:end]
 
     # Convert the data frame to a dictionary and return it

@@ -14,7 +14,7 @@ const RoutesComponent = () => (
     <Route path="/devices" element={<Devices />} />
     <Route path="/set-up-device" element={<DeviceSetup />} />
     <Route path='/experiment-selection' element={<ExperimentSelection />} />
-    <Route path="/experiment-results" element={<ExperimentResultsView />} />
+    <Route path="/experiment-results/:experimentId" element={<ExperimentResultsView />} />
     {/* Add more routes as needed */}
   </Routes>
 );

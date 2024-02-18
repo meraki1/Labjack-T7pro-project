@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
 from datetime import datetime
 
+class ExperimentChannelsHeaders(BaseModel):
+    channel_parameters: Dict[str, str]    
+
 class ExperimentSelection(BaseModel):
     experiment_id: int
     start_time: datetime
