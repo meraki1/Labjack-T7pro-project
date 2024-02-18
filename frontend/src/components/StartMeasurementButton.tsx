@@ -1,9 +1,8 @@
 // StartMeasurementButton.tsx
-
 import React, { useState } from 'react';
 
 interface StartMeasurementButtonProps {
-    onClick: () => Promise<boolean>; // Change the type of onClick to return a Promise<boolean>
+    onClick: () => Promise<boolean>; 
 }
 
 const StartMeasurementButton: React.FC<StartMeasurementButtonProps> = ({ onClick }) => {
@@ -13,7 +12,7 @@ const StartMeasurementButton: React.FC<StartMeasurementButtonProps> = ({ onClick
     const handleClick = async () => {
         setIsCollecting(true);
         try {
-            const success = await onClick(); // Wait for onClick to complete
+            const success = await onClick(); 
             if (success) {
                 setMessage('Data collected successfully');
             } else {
@@ -30,12 +29,11 @@ const StartMeasurementButton: React.FC<StartMeasurementButtonProps> = ({ onClick
         <>
             <button
                 onClick={handleClick}
-                className="relative flex items-center justify-center px-7 py-3 bg-gradient-to-r from-red-600 to-red-800 rounded-lg text-white font-semibold shadow-md hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                className="relative flex items-center justify-center px-6 py-2 bg-gradient-to-r from-red-600 to-red-800 rounded-lg text-white font-semibold shadow-md hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                 disabled={isCollecting} // Disable the button while collecting data
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    className={`h-6 w-6 mr-2 ${isCollecting ? 'text-transparent' : 'text-white'}`}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" className={`h-6 w-6 mr-2 ${isCollecting ? 'text-transparent' : 'text-white'}`}>
+                    <path d="M224 32C106 32 0 64.3 0 101.3v309.3C0 447.7 106 480 224 480s224-32.3 224-69.3V101.3C448 64.3 342 32 224 32zm192 378.7c0 10.7-64 37.3-192 37.3S32 421.3 32 410.7V384c71.4 21.4 148.6 32 192 32s120.6-10.6 192-32v26.7zm0-69.3c0 10.7-64 37.3-192 37.3S32 352 32 341.3v-96c71.4 21.4 148.6 32 192 32s120.6-10.6 192-32v96zm0-128c0 10.7-64 37.3-192 37.3S32 224 32 213.3v-96C103.4 138.7 180.6 149.3 224 149.3s120.6-10.6 192-32v96z"/>
                 </svg>
                 <span className="text-lg">{isCollecting ? 'Collecting Data...' : 'Start Measurement'}</span>
                 {isCollecting && (

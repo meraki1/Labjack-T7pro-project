@@ -1,11 +1,12 @@
-    // PreExperimentView.tsx
-    import { useState } from 'react';
-    import '../../index.css';
-    import DeviceSection from './DeviceSection';
-    import ExperimentNumber from './ExperimentNumberSection';
-    import ExperimentParametersSection from './ExperimentParametersSection';
-    import ChannelParametersSection from './ChannelParametersSection';
-    import StartMeasurementButton from '../../components/StartMeasurementButton';
+// PreExperimentView.tsx
+import { useState } from 'react';
+import '../../index.css';
+import DeviceSection from './DeviceSection';
+import ExperimentNumber from './ExperimentNumberSection';
+import ExperimentParametersSection from './ExperimentParametersSection';
+import ChannelParametersSection from './ChannelParametersSection';
+import StartMeasurementButton from '../../components/StartMeasurementButton';
+import BackToHomeButton from '../../components/BackToHomePageButton';
 
     export default function PreExperimentView() {
         const [selectedDeviceId, setSelectedDeviceId] = useState(0);
@@ -78,12 +79,7 @@
                 </div>
                 <hr className="border-t border-stone-200 w-full" />
                 <div className="flex mt-4 mb-4 px-4 w-full justify-start items-start">
-                    <button 
-                        onClick={() => window.location.href='/'} 
-                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"
-                    >
-                        Back to Home Page
-                    </button>                
+                    <BackToHomeButton />              
                 </div>
             </div>
         );    

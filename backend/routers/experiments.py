@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, MetaData, Table, select
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 import schemas, models, tests
 from database import get_db
 from services import dataCollecting
 from tests import dataCollectingTest
+from routers.experimentLogs import get_start_time
 import pandas as pd
 import os
 import glob
@@ -80,7 +81,7 @@ def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Sessio
         return {"message": "Experiment data, parameters, and channels created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 # View experiment results
 @router.get("/experiment/{experiment_id}/results")
 def get_experiment_results(experiment_id: int, 
@@ -162,3 +163,23 @@ def get_experiment_plot_data(experiment_id: int, parameter: str):
     plot_data = data[['timestamp', parameter]].to_dict(orient="records")
 
     return plot_data
+
+# Get all the experiments that were measured
+@router.get("/experiments", response_model=List[schemas.ExperimentSelection])
+async def get_all_experiments(db: Session = Depends(get_db)):
+    base_directory = os.getenv("base_directory")
+    experiment_directories = glob.glob(os.path.join(base_directory, "experiment_*"))
+    experiments = []
+    for directory in experiment_directories:
+        experiment_id = int(directory.split("_")[-1])
+        folder_name = os.path.basename(directory)
+        
+        # Get the start time from the database
+        start_time = get_start_time(db, experiment_id)
+
+        experiments.append({
+            "experiment_id": experiment_id,
+            "folder_name": folder_name,
+            "start_time": start_time,
+        })
+    return experiments

@@ -1,5 +1,11 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
+from datetime import datetime
+
+class ExperimentSelection(BaseModel):
+    experiment_id: int
+    start_time: datetime
+    folder_name: str
 
 class ChannelParameter(BaseModel):
     channel_id: int

@@ -1,5 +1,8 @@
 import { useMutation, useQuery } from 'react-query';
 import { useState } from 'react';
+import Navbar from '../../components/Navbar';
+import BackToHomeButton from '../../components/BackToHomePageButton';
+import SaveDeviceInfoButton from '../../components/SaveDeviceInfoButton';
 
 interface Device {
     device_id: number;
@@ -110,7 +113,8 @@ const DeviceSetup = () => {
     if (devicesError || channelsError || parametersError) return 'An error has occurred';
 
     return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 font-sans text-stone-200">
+        <div className="flex flex-col items-center justify-start min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 font-sans text-stone-200 w-full">
+            <Navbar />
             <h1 className="text-4xl mb-2 mt-2 font-sans font-semibold">Device Setup</h1>
             <hr className="border-t border-stone-200 w-full mt-4 text-gray-900" />
             {error && (
@@ -130,18 +134,18 @@ const DeviceSetup = () => {
                     ))}
                 </select>
             </div>
-            <table className="mt-6 w-1/2 text-center mx-auto table-fixed">
+            <table className="mt-6 w-1/2 text-center mx-auto table-fixed border-collapse border border-gray-300 bg-white shadow-lg">
                 <thead>
                     <tr>
-                        <th className="w-1/2 overflow-hidden overflow-ellipsis">Channel</th>
-                        <th className="w-1/2">Parameter</th>
+                        <th className="w-1/2 overflow-hidden overflow-ellipsis border border-gray-300 p-2 bg-gray-200 text-cyan-950">Channel</th>
+                        <th className="w-1/2 border border-gray-300 p-2 bg-gray-200 text-cyan-950">Parameter</th>
                     </tr>
                 </thead>
                 <tbody>
                     {channels && channels.map(channel => (
                         <tr key={channel.channel_id}>
-                            <td className="overflow-hidden overflow-ellipsis">{channel.channel_name}</td>
-                            <td>
+                            <td className="overflow-hidden overflow-ellipsis border border-gray-300 p-2 text-cyan-950">{channel.channel_name}</td>
+                            <td className="border border-gray-300 p-2 text-cyan-950">
                                 <select 
                                     value={selectedChannelParameters[channel.channel_id] || ''} 
                                     onChange={e => handleParameterChange(channel.channel_id, Number(e.target.value))}
@@ -158,12 +162,7 @@ const DeviceSetup = () => {
                 </tbody>
             </table>
             <div className="flex mt-4 space-x-4">
-                <button
-                    onClick={handleSaveDeviceInfo} 
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-md"
-                >
-                    Save Device Info
-                </button>
+                <SaveDeviceInfoButton handleSaveDeviceInfo={handleSaveDeviceInfo} />
             </div>
             {message && (
                 <div className="text-green-500 mt-2">
@@ -172,12 +171,7 @@ const DeviceSetup = () => {
             )}
             <hr className="border-t border-stone-200 w-full mt-4 mb-4" />
             <div className="flex mb-4 px-4 w-full justify-start items-start">
-                <button 
-                    onClick={() => window.location.href='/'} 
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 shadow-md"
-                >
-                    Back to Home Page
-                </button>
+                <BackToHomeButton />
             </div>
         </div>
     );    
