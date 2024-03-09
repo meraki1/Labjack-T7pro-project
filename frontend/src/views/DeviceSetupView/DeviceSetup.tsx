@@ -20,11 +20,11 @@ interface Parameter {
 }
 
 interface Offset {
-    [key: string]: number;
+    [key: string]: number | undefined;
 }
 
 interface Scale {
-    [key: string]: number;
+    [key: string]: number | undefined;
 }
 
 const fetchDevices = async () => {
@@ -105,12 +105,12 @@ const DeviceSetup = () => {
 
         setOffset(prevState => ({
             ...prevState,
-            [channelId]: '',
+            [channelId]: undefined,
         }));
 
         setScale(prevState => ({
             ...prevState,
-            [channelId]: '',
+            [channelId]: undefined,
         }));
     };
 
@@ -198,8 +198,8 @@ const DeviceSetup = () => {
                             </td>
                             <td className="border border-gray-300 p-2 text-cyan-950">
                                 <input 
-                                    type="text" 
-                                    value={offset[channel.channel_id] || ''} 
+                                    type="number" 
+                                    value={offset[channel.channel_id]?.toLocaleString('en-US') || ''}
                                     onChange={e => handleOffsetChange(channel.channel_id, e.target.value)}
                                     placeholder="Offset" 
                                     disabled={!selectedChannelParameters[channel.channel_id]}
@@ -208,8 +208,8 @@ const DeviceSetup = () => {
                             </td>
                             <td className="border border-gray-300 p-2 text-cyan-950">
                                 <input 
-                                    type="text" 
-                                    value={scale[channel.channel_id] || ''} 
+                                    type="number" 
+                                    value={scale[channel.channel_id]?.toLocaleString('en-US') || ''} 
                                     onChange={e => handleScaleChange(channel.channel_id, e.target.value)}
                                     placeholder="Scale" 
                                     disabled={!selectedChannelParameters[channel.channel_id]}

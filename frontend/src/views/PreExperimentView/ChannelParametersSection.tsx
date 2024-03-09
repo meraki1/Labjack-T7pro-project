@@ -9,6 +9,8 @@ interface ParameterChannelRelationship {
     device_id: number;
     channel_name: string;
     param_type: string;
+    offset: number,
+    scale: number
 }
 
 interface ChannelParametersSectionProps {
@@ -41,7 +43,7 @@ const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ sel
 
     if (!selectedDeviceId) {
         return (
-            <div className="text-stone-200 mt-2 w-1/3 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
+            <div className="text-stone-200 mt-2 w-3/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4">
                 <div className="mb-2 p-2 bg-white rounded-lg shadow-md">
                     <p className="font-bold block mb-2 text-md text-gray-700">Select a device to display channel to parameter relationship</p>
                 </div>
@@ -58,15 +60,30 @@ const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ sel
     }
 
     return (
-        <div className="text-stone-200 mt-2 w-1/3 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4 overflow-auto">
+        <div className="text-gray-700 mt-2 w-3/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4 overflow-auto grid grid-cols-3 gap-4">
             {relationshipData && relationshipData.map((relationship: ParameterChannelRelationship, index: number) => (
-                <div key={index} className="mb-2 p-2 bg-white rounded-lg shadow-md">
-                    <label htmlFor={relationship.channel_name} className="font-bold block mb-2 text-md text-gray-700">Channel: {relationship.channel_name}</label>
-                    <p className="text-blue-600 font-semibold">Parameter: {relationship.param_type}</p>
+                <div key={index} className="mb-2 p-2 bg-white rounded-lg shadow-xl border-2 border-gray-200">
+                    <label htmlFor={relationship.channel_name} className="font-bold block mb-2 text-md">Channel: {relationship.channel_name}</label>
+                    <table className="table-auto text-gray-600">
+                        <tbody>
+                            <tr>
+                                <td className="px-4 py-2 font-semibold">Parameter:</td>
+                                <td className="px-4 py-2 font-semibold">{relationship.param_type}</td>
+                            </tr>
+                            <tr>
+                                <td className="px-4 py-2 font-semibold">Offset:</td>
+                                <td className="px-4 py-2">{relationship.offset}</td>
+                            </tr>
+                            <tr>
+                                <td className="px-4 py-2 font-semibold">Scale:</td>
+                                <td className="px-4 py-2">{relationship.scale}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             ))}
         </div>
-    );    
+    );       
 };
 
 export default ChannelParametersSection;

@@ -140,8 +140,8 @@ class ParameterChannelRelationshipCreate(BaseModel):
     channel_id: int
     param_type_id: int
     device_id: int
-    offset:int
-    scale:int
+    offset:float
+    scale:float
 
 # Alone BaseModel needed for section for reading channel parameter relationship
 class ParameterChannelRelationshipSectionRead(BaseModel):
@@ -150,6 +150,8 @@ class ParameterChannelRelationshipSectionRead(BaseModel):
     device_id: int
     channel_name: str
     param_type: str
+    offset: float
+    scale: float
 
 # ParameterChannelRelationship Models
 class ParameterChannelRelationshipBase(BaseModel):
@@ -157,8 +159,8 @@ class ParameterChannelRelationshipBase(BaseModel):
     channel_id: Optional[int]
     param_type_id: Optional[int]
     device_id: Optional[int]
-    offset:Optional[int]
-    scale:Optional[int]
+    offset:Optional[float]
+    scale:Optional[float]
 
 class ParameterChannelRelationshipRead(BaseModel):
     channel_name: str

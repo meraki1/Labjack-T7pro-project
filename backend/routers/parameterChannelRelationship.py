@@ -48,6 +48,8 @@ def read_parameter_channel_relationship(device_id: int, db: Session = Depends(ge
         models.ParameterChannelRelationships.channel_id,
         models.ParameterChannelRelationships.param_type_id,
         models.ParameterChannelRelationships.device_id,
+        models.ParameterChannelRelationships.offset,
+        models.ParameterChannelRelationships.scale,
         models.DeviceChannel.channel_name,
         models.ParameterTypes.param_type
     ) \
