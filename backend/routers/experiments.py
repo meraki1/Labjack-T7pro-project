@@ -34,7 +34,7 @@ async def fetch_experiment_number(db: Session = Depends(get_db)):
 def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Session = Depends(get_db)):
     try:
         # Call the start_data_collecting function from dataCollecting.py
-        success = dataCollectingTest.start_data_collecting(experiment)
+        success = dataCollecting.start_data_collecting(experiment)
         if success:
             return {"message": "Experiment data collected successfully"}
         else:

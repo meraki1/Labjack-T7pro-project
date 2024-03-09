@@ -1,6 +1,7 @@
 // ExperimentSelection.tsx
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Navbar from '../../components/Navbar';
 import BackToHomeButton from '../../components/BackToHomePageButton';
 import ViewDetailsButton from '../../components/ViewDetailsButton';
@@ -29,12 +30,13 @@ const ExperimentSelection: React.FC = () => {
         return response.json();
     });
 
+    const navigate = useNavigate(); // useNavigate hook
+
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error fetching experiments</div>;
 
     const handleViewExperiment = (experimentId: number) => {
-        // Implement navigation to experiment details page using experimentId
-        console.log(`View experiment details for experiment ID: ${experimentId}`);
+        navigate(`/experiment-results/${experimentId}`);
     };
 
     const formatTimestamp = (timestamp: string) => {
@@ -122,7 +124,7 @@ const ExperimentSelection: React.FC = () => {
                                 <td className="p-2 border border-gray-300 text-cyan-950 text-center">{formatTimestamp(experiment.start_time)}</td>
                                 <td className="p-2 border border-gray-300 text-cyan-950 text-center">{experiment.folder_name}</td>
                                 <td className="p-2 border border-gray-300 text-cyan-950 flex justify-center">
-                                    <ViewDetailsButton experimentId={experiment.experiment_id} onClick={() => handleViewExperiment(experiment.experiment_id)} />
+                                    <ViewDetailsButton onClick={() => handleViewExperiment(experiment.experiment_id)} />
                                 </td>
                             </tr>
                         ))}

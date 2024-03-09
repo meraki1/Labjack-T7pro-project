@@ -31,7 +31,9 @@ def create_relationship(relationships: List[schemas.ParameterChannelRelationship
         db_relationship = models.ParameterChannelRelationships(
             channel_id=channel.channel_id,
             param_type_id=parameter.param_type_id, 
-            device_id=device.device_id
+            device_id=device.device_id,
+            offset=relationship.offset, 
+            scale=relationship.scale     
         )
         db.add(db_relationship)
         db.commit()

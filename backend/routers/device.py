@@ -15,6 +15,19 @@ def get_all_devices(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No devices found")
     return devices
 
+# This route returns device used for a specific experiment from device table.
+@router.get("/device", response_model=schemas.DeviceUsed)
+def get_device_name(experiment_id: int, db: Session = Depends(get_db)):
+    experiment = db.query(models.ExperimentLogs).filter(models.ExperimentLogs.log_id == experiment_id).first()
+    if not experiment:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    
+    device = db.query(models.Device).filter(models.Device.device_id == experiment.device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    return {"device_name": device.device_name}
+
 # This route updates the device name in the device table
 @router.put("/devices/{device_id}", response_model=schemas.DeviceBase)
 def update_device(device_id: int, device: schemas.DeviceCreate, db: Session = Depends(get_db)):

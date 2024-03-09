@@ -30,8 +30,8 @@ def start_data_collecting(experiment):
 
         # Access experiment_parameters
         sampling_rate = int(experiment.experiment_parameters[6].value)
-        duration_of_collection = int(experiment.experiment_parameters[7].value)
-        measurement_interval = int(experiment.experiment_parameters[8].value)
+        duration_of_collection = float(experiment.experiment_parameters[7].value) / 1000  # Convert ms to seconds
+        measurement_interval = float(experiment.experiment_parameters[8].value) / 1000  # Convert ms to seconds
 
         data_rows = []
         start_time = time.time()

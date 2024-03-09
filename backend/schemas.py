@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
 from datetime import datetime
 
+class DeviceUsed(BaseModel):
+    device_name: str
+
 class ExperimentChannelsHeaders(BaseModel):
     channel_parameters: Dict[str, str]    
 
@@ -137,6 +140,8 @@ class ParameterChannelRelationshipCreate(BaseModel):
     channel_id: int
     param_type_id: int
     device_id: int
+    offset:int
+    scale:int
 
 # Alone BaseModel needed for section for reading channel parameter relationship
 class ParameterChannelRelationshipSectionRead(BaseModel):
@@ -152,6 +157,8 @@ class ParameterChannelRelationshipBase(BaseModel):
     channel_id: Optional[int]
     param_type_id: Optional[int]
     device_id: Optional[int]
+    offset:Optional[int]
+    scale:Optional[int]
 
 class ParameterChannelRelationshipRead(BaseModel):
     channel_name: str

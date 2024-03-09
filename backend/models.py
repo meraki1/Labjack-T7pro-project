@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP, FLOAT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -60,6 +60,8 @@ class ParameterChannelRelationships(Base):
     channel_id = Column(Integer, ForeignKey('device_channels.channel_id')) 
     param_type_id = Column(Integer, ForeignKey('parameter_types.param_type_id'))
     device_id = Column(Integer)
+    offset = Column(FLOAT)
+    scale = Column(FLOAT)
 
 # Now that all the classes have been defined, we can add the remaining relationships
     

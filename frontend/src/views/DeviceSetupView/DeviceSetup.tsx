@@ -19,6 +19,14 @@ interface Parameter {
     param_type: string;
 }
 
+interface Offset {
+    [key: string]: number;
+}
+
+interface Scale {
+    [key: string]: number;
+}
+
 const fetchDevices = async () => {
     const response = await fetch('http://localhost:8000/devices');
     if (!response.ok) {
@@ -43,7 +51,7 @@ const fetchChannelParameters = async () => {
     return response.json();
 };
 
-const createRelationships = async (relationships: { channel_id: number; param_type_id: number; device_id: number }[]) => {
+const createRelationships = async (relationships: { channel_id: number; param_type_id: number; device_id: number; offset:number; scale:number }[]) => {
     const response = await fetch('http://localhost:8000/relationships', {
         method: 'POST',
         headers: {
@@ -63,6 +71,8 @@ const DeviceSetup = () => {
     const { data: parameters, isError: parametersError, isLoading: parametersLoading } = useQuery<Parameter[]>('channel parameters', fetchChannelParameters);
     const [selectedDevice, setSelectedDevice] = useState<string>();
     const [selectedChannelParameters, setSelectedChannelParameters] = useState<{ [key: number]: number }>({});
+    const [offset, setOffset] = useState<Offset>({});
+    const [scale, setScale] = useState<Scale>({});
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
@@ -84,13 +94,38 @@ const DeviceSetup = () => {
         }));
     
         const parameterValues = Object.values({ ...selectedChannelParameters, [channelId]: parameterId });
-        const hasDuplicate = parameterValues.some((item, index) => parameterValues.indexOf(item) !== index);
+        const nonDefaultValues = parameterValues.filter(value => value !== undefined && value !== null && value !== 0); // Exclude default value (0)
+        const hasDuplicateNonDefaultValues = new Set(nonDefaultValues).size !== nonDefaultValues.length;
     
-        if (hasDuplicate) {
-            setError('Error: Duplicate parameters are not allowed.');
+        if (hasDuplicateNonDefaultValues) {
+            setError('Error: Duplicate non-default parameters are not allowed.');
         } else {
             setError('');
         }
+
+        setOffset(prevState => ({
+            ...prevState,
+            [channelId]: '',
+        }));
+
+        setScale(prevState => ({
+            ...prevState,
+            [channelId]: '',
+        }));
+    };
+
+    const handleOffsetChange = (channelId: number, value: string) => {
+        setOffset(prevState => ({
+            ...prevState,
+            [channelId]: parseFloat(value),
+        }));
+    };
+
+    const handleScaleChange = (channelId: number, value: string) => {
+        setScale(prevState => ({
+            ...prevState,
+            [channelId]: parseFloat(value),
+        }));
     };
 
     const handleSaveDeviceInfo = () => {
@@ -101,6 +136,8 @@ const DeviceSetup = () => {
                     channel_id: Number(channelId),
                     param_type_id: Number(parameterId),
                     device_id: Number(selectedDevice),
+                    offset: offset[channelId] || 0,
+                    scale: scale[channelId] || 1,
                 }));
     
             createRelationshipsMutation.mutate(relationships);
@@ -134,11 +171,13 @@ const DeviceSetup = () => {
                     ))}
                 </select>
             </div>
-            <table className="mt-6 w-1/2 text-center mx-auto table-fixed border-collapse border border-gray-300 bg-white shadow-lg">
+            <table className="mt-6 w-3/5 text-center mx-auto table-fixed border-collapse border border-gray-300 bg-white shadow-lg">
                 <thead>
                     <tr>
                         <th className="w-1/2 overflow-hidden overflow-ellipsis border border-gray-300 p-2 bg-gray-200 text-cyan-950">Channel</th>
                         <th className="w-1/2 border border-gray-300 p-2 bg-gray-200 text-cyan-950">Parameter</th>
+                        <th className="w-1/2 border border-gray-300 p-2 bg-gray-200 text-cyan-950">Offset</th>
+                        <th className="w-1/2 border border-gray-300 p-2 bg-gray-200 text-cyan-950">Scale</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -156,6 +195,26 @@ const DeviceSetup = () => {
                                         <option key={index} value={parameter.param_type_id}>{parameter.param_type}</option>
                                     ))}
                                 </select>
+                            </td>
+                            <td className="border border-gray-300 p-2 text-cyan-950">
+                                <input 
+                                    type="text" 
+                                    value={offset[channel.channel_id] || ''} 
+                                    onChange={e => handleOffsetChange(channel.channel_id, e.target.value)}
+                                    placeholder="Offset" 
+                                    disabled={!selectedChannelParameters[channel.channel_id]}
+                                    className="p-1 rounded border border-gray-300 text-gray-900 mb-2 mt-2"
+                                />
+                            </td>
+                            <td className="border border-gray-300 p-2 text-cyan-950">
+                                <input 
+                                    type="text" 
+                                    value={scale[channel.channel_id] || ''} 
+                                    onChange={e => handleScaleChange(channel.channel_id, e.target.value)}
+                                    placeholder="Scale" 
+                                    disabled={!selectedChannelParameters[channel.channel_id]}
+                                    className="p-1 rounded border border-gray-300 text-gray-900 mb-2 mt-2"
+                                />
                             </td>
                         </tr>
                     ))}
