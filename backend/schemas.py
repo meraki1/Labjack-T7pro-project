@@ -2,6 +2,19 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
 from datetime import datetime
 
+class SpecificExperimentChannelRead(BaseModel):
+    defined_param_type_id: int
+    defined_param_type_id: int
+    param_type: str
+    channel_name: str
+    offset: float
+    scale:float
+
+class SpecificExperimentParameterRead(BaseModel):
+    param_type_id: int
+    param_type: str
+    param_value: int
+
 class DeviceUsed(BaseModel):
     device_name: str
 
@@ -68,8 +81,7 @@ class DeviceRead(DeviceBase):
     device_id: int
 
     class Config:
-        orm_mode = True
-
+        from_attributes = True
 
 # DeviceChannel Models
 class DeviceChannelBase(BaseModel):
@@ -103,7 +115,8 @@ class ExperimentChannelRead(ExperimentChannelBase):
     
 # ExperimentLog Models
 class ExperimentLogBase(BaseModel):
-    start_time: Optional[str]
+    log_id: Optional[int]
+    start_time: Optional[datetime]
     comments: Optional[str]
     device_id: Optional[int]
 
@@ -114,6 +127,7 @@ class ExperimentLogCreate(ExperimentLogBase):
 
 class ExperimentLogRead(ExperimentLogBase):
     log_id: int
+    start_time: datetime
 
     class Config:
         from_attributes = True
@@ -122,7 +136,8 @@ class ExperimentLogRead(ExperimentLogBase):
 class ExperimentParameterBase(BaseModel):
     param_type_id: Optional[int]
     log_id: Optional[int]
-    param_value: Optional[str]
+    param_value: Optional[int]
+    param_type: Optional[str]
 
 class ExperimentParameterCreate(ExperimentParameterBase):
     param_type_id: int
@@ -131,6 +146,8 @@ class ExperimentParameterCreate(ExperimentParameterBase):
 
 class ExperimentParameterRead(ExperimentParameterBase):
     experiment_param_id: int
+    param_type: str
+    param_value: int
 
     class Config:
         from_attributes = True

@@ -11,7 +11,6 @@ from routers.experimentLogs import get_start_time
 import pandas as pd
 import os
 import glob
-import math
 
 router = APIRouter(tags=["Experiment"])
 
@@ -43,7 +42,7 @@ def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Sess
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Function to handle experiment data posting
+# Function to handle experiment data posting to the database
 @router.post("/experimentDataCreate/")
 def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Session = Depends(get_db)):
     try:
@@ -81,48 +80,6 @@ def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Sessio
         return {"message": "Experiment data, parameters, and channels created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# View experiment results for table
-@router.get("/experiment/{experiment_id}/results")
-def get_experiment_results(experiment_id: int, 
-                           page: int = Query(1, ge=1), 
-                           per_page: int = Query(100, ge=1)):
-    # Define the directory where the experiment results are stored
-    base_directory = os.getenv("base_directory")
-    directory = os.path.join(base_directory, f"experiment_{experiment_id}")
-
-    # Check if the directory exists
-    if not os.path.exists(directory):
-        raise HTTPException(status_code=404, detail="Experiment not found")
-
-    # Read all Parquet files in the directory
-    file_paths = glob.glob(os.path.join(directory, f"experiment_{experiment_id}_*.parquet.gzip"))
-    
-    # Check if any files exist
-    if not file_paths:
-        raise HTTPException(status_code=404, detail="No data found for the experiment")
-
-    # Initialize an empty list to store data frames
-    data_frames = []
-
-    # Read each Parquet file into a data frame and append to the list
-    for file_path in file_paths:
-        df = pd.read_parquet(file_path)
-        data_frames.append(df)
-
-    # Concatenate all data frames into one
-    data = pd.concat(data_frames, ignore_index=True)
-
-    # Convert Unix timestamp to datetime
-    data['timestamp'] = pd.to_datetime(data['timestamp'], unit='s')
-
-    # Apply pagination
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated_data = data.iloc[start:end]
-
-    # Convert the data frame to a dictionary and return it
-    return paginated_data.to_dict(orient="records")
 
 # Calculates summary statistics for each parameter in the experiment data
 @router.get("/experiment/{experiment_id}/summary")
@@ -181,3 +138,17 @@ async def get_all_experiments(db: Session = Depends(get_db)):
             "start_time": start_time,
         })
     return experiments
+
+# Get experiment id and timestamp
+@router.get("/experiment_timestamp/")
+async def fetch_experiment_id_and_timestamp(experiment_id: int, db: Session = Depends(get_db)):
+    # Query the experiment id and timestamp
+    query = select(models.ExperimentLogs.log_id, models.ExperimentLogs.start_time).where(models.ExperimentLogs.log_id == experiment_id)
+    result = db.execute(query).fetchone()
+
+    # Check if the experiment ID is not found
+    if result is None:
+        raise HTTPException(status_code=404, detail="Experiment ID not found")
+
+    # Return the data as a dictionary with log_id as the key and start_time as the value
+    return {result[0]: result[1]}  # log_id is result[0], start_time is result[1]

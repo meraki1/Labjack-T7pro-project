@@ -15,7 +15,7 @@ def get_all_devices(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No devices found")
     return devices
 
-# This route returns device used for a specific experiment from device table.
+# This route returns device used for a specific experiment from device table
 @router.get("/device", response_model=schemas.DeviceUsed)
 def get_device_name(experiment_id: int, db: Session = Depends(get_db)):
     experiment = db.query(models.ExperimentLogs).filter(models.ExperimentLogs.log_id == experiment_id).first()

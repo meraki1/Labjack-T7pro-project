@@ -15,9 +15,18 @@ def read_experiment_parameters(db: Session = Depends(get_db)):
     return param_list
 
 # Read experiment parameters for a specific experiment
-@router.get("/experimentParameters/{log_id}", response_model=List[schemas.ExperimentParameterRead])
+@router.get("/experimentParameters/{log_id}", response_model=List[schemas.SpecificExperimentParameterRead])
 def read_experiment_parameters_log_id(log_id: int, db: Session = Depends(get_db)):
-    param_list = db.query(models.ExperimentParameters).filter(models.ExperimentParameters.log_id == log_id).all()
+    param_list = db.query(
+        models.ExperimentParameters.param_type_id,
+        models.ExperimentParameters.param_value,
+        models.ParameterTypes.param_type
+    ) \
+    .filter(models.ExperimentParameters.log_id == log_id) \
+    .join(models.ParameterTypes, models.ExperimentParameters.param_type_id == models.ParameterTypes.param_type_id) \
+    .all()
+
     if not param_list:
         raise HTTPException(status_code=404, detail="No parameters found for this log_id")
+    
     return param_list
