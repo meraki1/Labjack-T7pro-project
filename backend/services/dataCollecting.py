@@ -14,7 +14,7 @@ def start_data_collecting(experiment):
 
         # Create a new directory for the experiment
         base_directory = os.getenv("base_directory")
-        directory = os.path.join(base_directory, f"experiment_{experiment.log_id}")
+        directory = os.path.join(base_directory, f"experiment_{1}")
         os.makedirs(directory, exist_ok=True)
 
         # Access experiment_parameters

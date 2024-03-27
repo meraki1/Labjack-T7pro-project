@@ -1,8 +1,12 @@
 import sys
+import os
+import pandas as pd
 from datetime import datetime
 from labjack import ljm
+from dotenv import load_dotenv
 
 MAX_REQUESTS = 10 # The number of eStreamRead calls that will be performed.
+experiment_log_id = 1  # Define your experiment log id here
 
 def start_data_collecting():
     try:
@@ -21,6 +25,12 @@ def start_data_collecting():
         scanRate = 10
         scansPerRead = int(scanRate / 2)
 
+        # Create a new directory for the experiment
+        load_dotenv()
+        base_directory = os.getenv("base_directory")
+        directory = os.path.join(base_directory, f"experiment_{experiment_log_id}")
+        os.makedirs(directory, exist_ok=True)
+
         # Configure and start stream
         scanRate = ljm.eStreamStart(handle, scansPerRead, numAddresses, aScanList, scanRate)
         print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
@@ -37,7 +47,11 @@ def start_data_collecting():
             aData = ret[0]
             scans = len(aData) / numAddresses
             totScans += scans
-            print(aData)
+
+            # Save raw data to parquet gzip file
+            df = pd.DataFrame(aData[0], columns=aScanListNames)
+            filename = os.path.join(directory, f'sample_{i}.parquet.gzip')
+            df.to_parquet(filename, compression='gzip')
 
             # Count the skipped samples which are indicated by -9999 values. Missed
             # samples occur after a device's stream buffer overflows and are

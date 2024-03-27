@@ -1,69 +1,75 @@
+import sys
 import os
-import time
 import pandas as pd
+import numpy as np
+from datetime import datetime
+from dotenv import load_dotenv
 
-# Mock the ljm module
-class MockLJM:
-    def openS(self, device_type, connection_type, identifier):
-        return 1
+MAX_REQUESTS = 10 # The number of eStreamRead calls that will be performed.
+experiment_log_id = 3  # Define your experiment log id here
 
-    def eReadNames(self, handle, num_inputs, names):
-        return [1.0] * num_inputs
+# Mocked LabJack class
+class MockLabJack:
+    def __init__(self):
+        self.aScanListNames = ["AIN0", "AIN1", "AIN2", "AIN3", "AIN4"]
+        self.numAddresses = len(self.aScanListNames)
+        self.scanRate = 500
+        self.scansPerRead = int(self.scanRate / 2)
 
-    def close(self, handle):
-        pass
+    def eStreamRead(self):
+        # Generate random data for each channel
+        aData = np.random.uniform(-1, 1, (self.scansPerRead, self.numAddresses)).flatten().tolist()
+        return [aData, 0, 0]
 
-ljm = MockLJM()
-
-def start_data_collecting(experiment):
+# Test function
+def test_start_data_collecting():
     try:
-        # Open the LabJack device
-        handle = ljm.openS("T7", "ETHERNET", "192.168.88.15")
-
-        num_inputs = len(experiment.channel_parameters)
-        names = [param.channel_name for param in experiment.channel_parameters]
+        # Use the mocked LabJack device
+        handle = MockLabJack()
 
         # Create a new directory for the experiment
+        load_dotenv()  # take environment variables from .env.
         base_directory = os.getenv("base_directory")
-        directory = os.path.join(base_directory, f"experiment_{experiment.log_id}")
+        directory = os.path.join(base_directory, f"experiment_{experiment_log_id}")
         os.makedirs(directory, exist_ok=True)
 
-        # Access experiment_parameters
-        sampling_rate = int(experiment.experiment_parameters[6].value)
-        duration_of_collection = float(experiment.experiment_parameters[7].value) / 1000  # Convert ms to seconds
-        measurement_interval = float(experiment.experiment_parameters[8].value) / 1000  # Convert ms to seconds
+        print("\nPerforming %i stream reads." % MAX_REQUESTS)
+        start = datetime.now()
+        totScans = 0
 
-        data_rows = []
-        start_time = time.time()
-        end_time = start_time + duration_of_collection
-        iteration = 0
-        while time.time() < end_time:
-            for _ in range(sampling_rate):
-                data = ljm.eReadNames(handle, num_inputs, names)
-                timestamp = time.time()
-                data_row = {'timestamp': timestamp, 'log_id': experiment.log_id}
-                data_row.update(dict(zip(names, data)))
-                data_rows.append(data_row)
+        i = 1
+        while i <= MAX_REQUESTS:
+            ret = handle.eStreamRead()
 
-                if len(data_rows) % 10000 == 0:
-                    file_path = os.path.join(directory, f"experiment_{experiment.log_id}_{iteration}.parquet.gzip")
-                    df = pd.DataFrame(data_rows)
-                    df.to_parquet(file_path, compression='gzip', index=False)
-                    data_rows = []
-                    iteration += 1
+            aData = ret[0]
+            scans = len(aData) // handle.numAddresses
+            totScans += scans
 
-            time.sleep(measurement_interval)
+            # Reshape the data to a 2D array where each row is a scan
+            reshaped_data = np.reshape(aData, (scans, handle.numAddresses))
 
-        if data_rows:
-            file_path = os.path.join(directory, f"experiment_{experiment.log_id}_{iteration}.parquet.gzip")
-            df = pd.DataFrame(data_rows)
-            df.to_parquet(file_path, compression='gzip', index=False)
+            # Save raw data to parquet gzip file
+            df = pd.DataFrame(reshaped_data, columns=handle.aScanListNames)
+            filename = os.path.join(directory, f'sample_{i}.parquet.gzip')
+            df.to_parquet(filename, compression='gzip')
 
-        return True 
+            print("\neStreamRead %i" % i)
+            ainStr = ""
+            for j in range(0, handle.numAddresses):
+                ainStr += "%s = %0.5f, " % (handle.aScanListNames[j], reshaped_data[0][j])
+            print("  1st scan out of %i: %s" % (scans, ainStr))
+            i += 1
 
-    except Exception as e:
-        print("Error during data collection:", e)
-        return False
+        end = datetime.now()
 
-    finally:
-        ljm.close(handle)
+        print("\nTotal scans = %i" % (totScans))
+        tt = (end - start).seconds + float((end - start).microseconds) / 1000000
+        print("Time taken = %f seconds" % (tt))
+        print("Timed Scan Rate = %f scans/second" % (totScans / tt))
+        print("Timed Sample Rate = %f samples/second" % (totScans * handle.numAddresses / tt))
+    except Exception:
+        e = sys.exc_info()[1]
+        print(e)
+
+# Test the function
+test_start_data_collecting()
