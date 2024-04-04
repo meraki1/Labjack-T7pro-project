@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP, FLOAT
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, TIMESTAMP, FLOAT, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -63,6 +63,16 @@ class ParameterChannelRelationships(Base):
     offset = Column(FLOAT)
     scale = Column(FLOAT)
 
+class ExperimentSample(Base):
+    __tablename__ = "experiment_samples"
+
+    id = Column(Integer, primary_key=True, index=True)
+    file_name = Column(String, index=True)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
+    experiment_log_id = Column(Integer, ForeignKey('experiment_logs.log_id'))
+    sample_number = Column(Integer)
+
 # Now that all the classes have been defined, we can add the remaining relationships
     
 DeviceChannel.parameter_channel_relationships = relationship('ParameterChannelRelationships', backref='device_channels', uselist=False)
@@ -72,3 +82,4 @@ ParameterTypes.parameter_channel_relationships = relationship('ParameterChannelR
 ParameterTypes.experiment_parameters = relationship('ExperimentParameters', backref='parameter_types')
 ExperimentLogs.experiment_channels = relationship('ExperimentChannels', backref='experiment_logs')
 ExperimentLogs.experiment_parameters = relationship('ExperimentParameters', backref='experiment_logs')
+ExperimentLogs.experiment_samples = relationship('ExperimentSample', backref='experiment_logs')

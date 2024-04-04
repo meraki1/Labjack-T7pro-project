@@ -2,6 +2,22 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
 from datetime import datetime
 
+class ExperimentSampleBase(BaseModel):
+    file_name: str
+    start_time: datetime
+    end_time: datetime
+    experiment_log_id: int
+    sample_number: int
+
+class ExperimentSampleCreate(ExperimentSampleBase):
+    pass
+
+class ExperimentSample(ExperimentSampleBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 class SpecificExperimentChannelRead(BaseModel):
     defined_param_type_id: int
     defined_param_type_id: int

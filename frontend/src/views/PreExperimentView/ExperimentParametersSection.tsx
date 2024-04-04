@@ -42,7 +42,6 @@ const ExperimentParametersSection: React.FC<ExperimentParametersSectionProps> = 
         }
     }, [parameters, notes, setExperimentParameters, notesParameter]);
     
-
     if (status === 'loading') {
         return <div>Loading...</div>;
     }

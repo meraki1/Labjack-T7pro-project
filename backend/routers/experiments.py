@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, MetaData, Table, select
 from typing import Optional, List
@@ -32,8 +32,8 @@ async def fetch_experiment_number(db: Session = Depends(get_db)):
 @router.post("/start_experiment/")
 def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Session = Depends(get_db)):
     try:
-        # Call the start_data_collecting function from dataCollecting.py
-        success = dataCollecting.start_data_collecting(experiment)
+        # Call the start_data_collecting function from dataCollectingTest.py
+        success = dataCollectingTest.start_data_collecting(experiment, db)
         if success:
             return {"message": "Experiment data collected successfully"}
         else:

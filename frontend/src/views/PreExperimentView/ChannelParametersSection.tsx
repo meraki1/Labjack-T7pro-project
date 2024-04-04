@@ -60,15 +60,15 @@ const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ sel
     }
 
     return (
-        <div className="text-gray-700 mt-2 w-3/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4 overflow-auto grid grid-cols-3 gap-4">
+        <div className="text-gray-700 mt-2 w-3/5 font-sans p-2 bg-gray-100 rounded-lg shadow-lg ml-4 overflow-auto grid grid-cols-2 gap-2">
             {relationshipData && relationshipData.map((relationship: ParameterChannelRelationship, index: number) => (
-                <div key={index} className="mb-2 p-2 bg-white rounded-lg shadow-xl border-2 border-gray-200">
-                    <label htmlFor={relationship.channel_name} className="font-bold block mb-2 text-md">Channel: {relationship.channel_name}</label>
+                <div key={index} className="p-2 bg-white rounded-lg shadow-xl border-2 border-gray-200">
+                    <label htmlFor={relationship.channel_name} className="font-bold block mb-2 text-md px-2">Channel: {relationship.channel_name}</label>
                     <table className="table-auto text-gray-600">
                         <tbody>
                             <tr>
-                                <td className="px-4 py-2 font-semibold">Parameter:</td>
-                                <td className="px-4 py-2 font-semibold">{relationship.param_type}</td>
+                                <td className="px-4 font-semibold">Parameter:</td>
+                                <td className="px-4 font-semibold">{relationship.param_type}</td>
                             </tr>
                             <tr>
                                 <td className="px-4 py-2 font-semibold">Offset:</td>
