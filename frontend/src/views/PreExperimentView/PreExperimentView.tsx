@@ -26,36 +26,33 @@ export default function PreExperimentView() {
             channel_parameters: channelParameters,
             experiment_parameters: experimentParameters,
         };
-    
-        // Log the data being sent to the backend
-        console.log('Sending the following experiment data to the backend:', experimentData);
-        console.log('Sending the following data for collecting to the backend:', dataForCollecting);
         
         try {
-            const [startExperimentResponse, experimentDataResponse] = await Promise.all([
-                // Send experiment data to start the experiment
-                fetch('http://localhost:8000/start_experiment/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(dataForCollecting),
-                }).then(response => response.json()),
-                // Updating the tables in the database with experiment data
-                fetch('http://localhost:8000/experimentDataCreate/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(experimentData),
-                }).then(response => response.json())
-            ]);
+            // Updating the tables in the database with experiment data
+            const experimentDataResponse = await fetch('http://localhost:8000/experimentDataCreate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(experimentData),
+            }).then(response => response.json());
     
-            // Check if both requests were successful
-            if (
-                startExperimentResponse.message === 'Experiment data collected successfully' &&
-                experimentDataResponse.message === 'Experiment data, parameters, and channels created successfully'
-            ) {
+            // Check if the request was successful
+            if (experimentDataResponse.message !== 'Experiment data, parameters, and channels created successfully') {
+                return false;
+            }
+    
+            // Send experiment data to start the experiment
+            const startExperimentResponse = await fetch('http://localhost:8000/start_experiment/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataForCollecting),
+            }).then(response => response.json());
+    
+            // Check if the request was successful
+            if (startExperimentResponse.message === 'Experiment data collected successfully') {
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
@@ -69,7 +66,7 @@ export default function PreExperimentView() {
             console.error('Error:', error);
             return false; // Return false in case of an error
         }
-    }   
+    }  
        
     return (
         <div className="flex flex-col items-start justify-between min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 text-stone-200 shadow-md w-full font-sans">

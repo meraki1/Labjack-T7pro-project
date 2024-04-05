@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, MetaData, Table, select
+from sqlalchemy import create_engine, MetaData, Table, select, and_
 from typing import Optional, List
 from datetime import datetime
 import schemas, models, tests
@@ -140,15 +140,99 @@ async def get_all_experiments(db: Session = Depends(get_db)):
     return experiments
 
 # Get experiment id and timestamp
-@router.get("/experiment_timestamp/")
+@router.get("/experiment/{experiment_id}", response_model=schemas.Experiment)
 async def fetch_experiment_id_and_timestamp(experiment_id: int, db: Session = Depends(get_db)):
-    # Query the experiment id and timestamp
     query = select(models.ExperimentLogs.log_id, models.ExperimentLogs.start_time).where(models.ExperimentLogs.log_id == experiment_id)
     result = db.execute(query).fetchone()
-
-    # Check if the experiment ID is not found
+    
     if result is None:
         raise HTTPException(status_code=404, detail="Experiment ID not found")
+    
+    return schemas.Experiment(log_id=result[0], start_time=result[1]) 
 
-    # Return the data as a dictionary with log_id as the key and start_time as the value
-    return {result[0]: result[1]}  # log_id is result[0], start_time is result[1]
+# Get experiment samples and data for them
+@router.get("/experiment_samples/{experiment_id}", response_model=List[schemas.ExperimentSampleBase])
+def read_experiment_samples(experiment_id: int, db: Session = Depends(get_db)):
+    experiment_samples = db.query(models.ExperimentSample).filter(models.ExperimentSample.experiment_log_id == experiment_id).all()
+    if not experiment_samples:
+        raise HTTPException(status_code=404, detail="No samples found for this experiment ID")
+    
+    # Remove file extensions
+    for sample in experiment_samples:
+        sample.file_name = sample.file_name.split(".")[0]
+    
+    return experiment_samples
+
+# Get experiment details logs based on log_id
+@router.get("/experiment_details_logs/{experiment_id}", response_model=List[schemas.ExperimentDetailLogs])
+async def fetch_experiment_details_logs(experiment_id: int, db: Session = Depends(get_db)):
+    read_experiment_details = select(
+        models.ExperimentLogs.log_id,
+        models.ExperimentLogs.notes,
+        models.Device.device_name
+    ).select_from(
+        models.ExperimentLogs
+    ).join(
+        models.Device, models.ExperimentLogs.device_id == models.Device.device_id
+    ).where(
+        models.ExperimentLogs.log_id == experiment_id
+    )
+
+    experiment_details = db.execute(read_experiment_details).fetchall()
+
+    if not experiment_details:
+        raise HTTPException(status_code=404, detail="No details found for this experiment ID")
+    
+    return [{"log_id": detail[0], "notes": detail[1], "device_name": detail[2]} for detail in experiment_details]
+
+# Get experiment details channels based on log_id
+@router.get("/experiment_details_channels/{experiment_id}", response_model=List[schemas.ExperimentDetailChannels])
+async def fetch_experiment_details_channels(experiment_id: int, db: Session = Depends(get_db)):
+    read_experiment_details = select(
+        models.DeviceChannel.channel_name,
+        models.ParameterTypes.param_type,
+        models.ParameterChannelRelationships.offset,
+        models.ParameterChannelRelationships.scale
+    ).select_from(
+        models.ExperimentLogs
+    ).join(
+        models.ExperimentChannels, models.ExperimentLogs.log_id == models.ExperimentChannels.log_id
+    ).join(
+        models.DeviceChannel, models.ExperimentChannels.defined_channel_id == models.DeviceChannel.channel_id
+    ).join(
+        models.ParameterTypes, models.ExperimentChannels.defined_param_type_id == models.ParameterTypes.param_type_id
+    ).join(
+        models.ParameterChannelRelationships, models.ExperimentChannels.defined_param_type_id == models.ParameterChannelRelationships.param_type_id
+    ).where(
+        models.ExperimentLogs.log_id == experiment_id
+    )
+
+    experiment_details = db.execute(read_experiment_details).fetchall()
+
+    if not experiment_details:
+        raise HTTPException(status_code=404, detail="No details found for this experiment ID")
+    
+    return [schemas.ExperimentDetailChannels(channels_parameters={detail[0]: detail[1]}, offset=detail[2], scale=detail[3] ) for detail in experiment_details]
+
+# Get experiment details parameters based on log_id
+@router.get("/experiment_details_parameters/{experiment_id}", response_model=List[schemas.ExperimentDetailParameters])
+async def fetch_experiment_details_parameters(experiment_id: int, db: Session = Depends(get_db)):
+    read_experiment_details = select(
+        models.ParameterTypes.param_type,
+        models.ExperimentParameters.param_value
+    ).select_from(
+        models.ExperimentLogs
+    ).join(
+        models.ExperimentParameters, models.ExperimentLogs.log_id == models.ExperimentParameters.log_id
+    ).join(
+        models.ParameterTypes, models.ExperimentParameters.param_type_id == models.ParameterTypes.param_type_id
+    ).where(
+        models.ExperimentLogs.log_id == experiment_id
+    )
+
+    experiment_details = db.execute(read_experiment_details).fetchall()
+
+    if not experiment_details:
+        raise HTTPException(status_code=404, detail="No details found for this experiment ID")
+    
+    return [schemas.ExperimentDetailParameters(experiment_parameters={detail[0]: detail[1]}) for detail in experiment_details]

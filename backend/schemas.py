@@ -2,18 +2,37 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List, Union
 from datetime import datetime
 
-class ExperimentSampleBase(BaseModel):
-    file_name: str
+class ExperimentDetailParameters(BaseModel):
+    experiment_parameters: Dict[str, str]
+
+class ExperimentDetailChannels(BaseModel):
+    channels_parameters: Dict[str, str]
+    offset: float
+    scale: float
+
+class ExperimentDetailLogs(BaseModel):
+    log_id: int
+    notes: str
+    device_name: str
+
+class Experiment(BaseModel):
+    log_id: int
     start_time: datetime
-    end_time: datetime
-    experiment_log_id: int
-    sample_number: int
+
+class ExperimentSampleBase(BaseModel):
+    id: int
+    file_name: Optional[str]
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    experiment_log_id: Optional[int]
+    sample_number: Optional[int]
 
 class ExperimentSampleCreate(ExperimentSampleBase):
     pass
 
-class ExperimentSample(ExperimentSampleBase):
+class ExperimentSampleRead(ExperimentSampleBase):
     id: int
+    file_name: str
 
     class Config:
         from_attributes = True
