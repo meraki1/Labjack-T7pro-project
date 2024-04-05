@@ -70,14 +70,14 @@ export default function PreExperimentView() {
        
     return (
         <div className="flex flex-col items-start justify-between min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 text-stone-200 shadow-md w-full font-sans">
-            <div className="flex justify-between w-full mt-2    ">
-            <div>
-                <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />
+            <div className="flex justify-between w-full mt-2">
+                <div>
+                    <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />
+                </div>
+                <div className="flex justify-between mt-2 mr-20 w-2/5">
+                    <DeviceSection selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} />
+                </div>
             </div>
-            <div className="flex justify-between mt-2 mr-20 w-2/5">
-                <DeviceSection selectedDeviceId={selectedDeviceId} setSelectedDeviceId={setSelectedDeviceId} />
-            </div>
-        </div>
             <hr className="border-t border-stone-200 w-full mt-2" />
             <div className="flex w-full justify-center mt-2">
                 <ExperimentParametersSection setExperimentParameters={setExperimentParameters} />
