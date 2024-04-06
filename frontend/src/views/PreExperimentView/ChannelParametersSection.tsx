@@ -71,12 +71,12 @@ const ChannelParametersSection: React.FC<ChannelParametersSectionProps> = ({ sel
                                 <td className="px-4 font-semibold">{relationship.param_type}</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-2 font-semibold">Offset:</td>
-                                <td className="px-4 py-2">{relationship.offset}</td>
+                                <td className="px-4 py-1 font-semibold">Offset:</td>
+                                <td className="px-4">{relationship.offset}</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-2 font-semibold">Scale:</td>
-                                <td className="px-4 py-2">{relationship.scale}</td>
+                                <td className="px-4 py-1 font-semibold">Scale:</td>
+                                <td className="px-4">{relationship.scale}</td>
                             </tr>
                         </tbody>
                     </table>

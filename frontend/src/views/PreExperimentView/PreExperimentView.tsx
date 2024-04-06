@@ -7,6 +7,7 @@ import ExperimentParametersSection from './ExperimentParametersSection';
 import ChannelParametersSection from './ChannelParametersSection';
 import StartMeasurementButton from '../../components/StartMeasurementButton';
 import BackToHomeButton from '../../components/BackToHomePageButton';
+import Navbar from '../../components/Navbar';
 
 export default function PreExperimentView() {
     const [selectedDeviceId, setSelectedDeviceId] = useState(0);
@@ -70,6 +71,7 @@ export default function PreExperimentView() {
        
     return (
         <div className="flex flex-col items-start justify-between min-h-screen bg-gradient-to-b from-cyan-950 via-sky-800 to-sky-950 text-stone-200 shadow-md w-full font-sans">
+            <Navbar />
             <div className="flex justify-between w-full mt-2">
                 <div>
                     <ExperimentNumber experimentNumber={experimentNumber} setExperimentNumber={setExperimentNumber} />

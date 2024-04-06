@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+from fastapi.responses import StreamingResponse
+import io
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, MetaData, Table, select, and_
 from typing import Optional, List
@@ -80,44 +82,6 @@ def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Sessio
         return {"message": "Experiment data, parameters, and channels created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# Calculates summary statistics for each parameter in the experiment data
-@router.get("/experiment/{experiment_id}/summary")
-def get_experiment_summary(experiment_id: int):
-    # Similar to your get_experiment_results function, read the data
-    base_directory = os.getenv("base_directory")
-    directory = os.path.join(base_directory, f"experiment_{experiment_id}")
-    if not os.path.exists(directory):
-        raise HTTPException(status_code=404, detail="Experiment not found")
-    file_paths = glob.glob(os.path.join(directory, "*.parquet.gzip"))
-    data_frames = [pd.read_parquet(file_path) for file_path in file_paths]
-    data = pd.concat(data_frames, ignore_index=True)
-
-    # Calculate summary statistics for each parameter
-    summary = data.describe().to_dict()
-
-    return summary
-
-# Returns the data for a specified parameter that can be used for plotting
-@router.get("/experiment/{experiment_id}/plot_data")
-def get_experiment_plot_data(experiment_id: int, parameter: str):
-    # Similar to your get_experiment_results function, read the data
-    base_directory = os.getenv("base_directory")
-    directory = os.path.join(base_directory, f"experiment_{experiment_id}")
-    if not os.path.exists(directory):
-        raise HTTPException(status_code=404, detail="Experiment not found")
-    file_paths = glob.glob(os.path.join(directory, "*.parquet.gzip"))
-    data_frames = [pd.read_parquet(file_path) for file_path in file_paths]
-    data = pd.concat(data_frames, ignore_index=True)
-
-    # Check if the parameter exists in the data
-    if parameter not in data.columns:
-        raise HTTPException(status_code=400, detail=f"Parameter {parameter} not found")
-
-    # Return the data for the specified parameter
-    plot_data = data[['timestamp', parameter]].to_dict(orient="records")
-
-    return plot_data
 
 # Get all the experiments that were measured
 @router.get("/experiments", response_model=List[schemas.ExperimentSelection])
@@ -236,3 +200,104 @@ async def fetch_experiment_details_parameters(experiment_id: int, db: Session = 
         raise HTTPException(status_code=404, detail="No details found for this experiment ID")
     
     return [schemas.ExperimentDetailParameters(experiment_parameters={detail[0]: detail[1]}) for detail in experiment_details]
+
+# Returns the data for a specified sample for log_id that can be used for plotting
+@router.get("/experiment_visual_sample/{experiment_id}/{sample_id}", response_model=List[dict])
+async def fetch_experiment_visual_sample(experiment_id: int, sample_id: int, db: Session = Depends(get_db)):
+    # Fetch the start and end time for the sample from the database
+    sample = db.query(models.ExperimentSample).filter(models.ExperimentSample.experiment_log_id == experiment_id, models.ExperimentSample.id == sample_id).first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample ID not found")
+
+    start_time = sample.start_time
+    end_time = sample.end_time
+
+    # Load the data from the .parquet.gzip file
+    base_directory = os.getenv("base_directory")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Sample file not found")
+    
+    try:
+        df = pd.read_parquet(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading file {file_path}: {str(e)}")
+
+    # Create a time column with equally spaced timestamps between start_time and end_time
+    try:
+        df["time"] = pd.date_range(start=start_time, end=end_time, periods=len(df))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating time column: {str(e)}")
+
+    # Convert the DataFrame to a list of dictionaries and return it
+    return df.to_dict("records")
+
+# Returns the start time, end time, overall duration, and summary statistics for a specified sample for log_id
+@router.get("/experiment_sample_stats/{experiment_id}/{sample_id}", response_model=dict)
+async def fetch_experiment_sample_stats(experiment_id: int, sample_id: int, db: Session = Depends(get_db)):
+    # Fetch the start and end time for the sample from the database
+    sample = db.query(models.ExperimentSample).filter(models.ExperimentSample.experiment_log_id == experiment_id, models.ExperimentSample.id == sample_id).first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample ID not found")
+
+    start_time = sample.start_time
+    end_time = sample.end_time
+
+    # Calculate the overall duration
+    duration = end_time - start_time
+
+    # Load the data from the .parquet.gzip file
+    base_directory = os.getenv("base_directory")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Sample file not found")
+    
+    try:
+        df = pd.read_parquet(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading file {file_path}: {str(e)}")
+
+    # Calculate summary statistics for each channel
+    summary_stats = df.describe().to_dict()
+
+    # Return the start time, end time, overall duration, and summary statistics
+    return {"start_time": start_time, "end_time": end_time, "duration": duration, "summary_stats": summary_stats}
+
+# Returns the data for a specified sample for log_id that can be used for importing to csv
+@router.get("/experiment_visual_sample_csv/{experiment_id}/{sample_id}")
+async def fetch_experiment_visual_sample_csv(experiment_id: int, sample_id: int, db: Session = Depends(get_db)):
+    # Fetch the start and end time for the sample from the database
+    sample = db.query(models.ExperimentSample).filter(models.ExperimentSample.experiment_log_id == experiment_id, models.ExperimentSample.id == sample_id).first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample ID not found")
+
+    start_time = sample.start_time
+    end_time = sample.end_time
+
+    # Load the data from the .parquet.gzip file
+    base_directory = os.getenv("base_directory")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Sample file not found")
+    
+    try:
+        df = pd.read_parquet(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading file {file_path}: {str(e)}")
+
+    # Create a time column with equally spaced timestamps between start_time and end_time
+    try:
+        df["time"] = pd.date_range(start=start_time, end=end_time, periods=len(df))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating time column: {str(e)}")
+
+    # Rearrange the columns to place time as the first column
+    df = df[["time"] + [col for col in df.columns if col != "time"]]
+
+    # Convert the DataFrame to a CSV and create a StreamingResponse
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = f"attachment; filename=experiment_{experiment_id}_sample_{sample_id}.csv"
+
+    return response
