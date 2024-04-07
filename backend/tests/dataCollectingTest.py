@@ -23,14 +23,23 @@ class MockLabJack:
         aData = np.random.uniform(-1, 1, (self.scansPerRead, self.numAddresses)).flatten().tolist()
         return [aData, 0, 0]
 
-def save_sample(i, aData, handle, directory, start_time_sample, db: Session, experiment):
+def save_sample(i, aData, handle, directory, start_time_sample, db: Session, experiment, dict_channel_offset_scale):
     scans = len(aData) // handle.numAddresses
 
     # Reshape the data to a 2D array where each row is a scan
     reshaped_data = np.reshape(aData, (scans, handle.numAddresses))
 
-    # Save raw data to parquet gzip file
+    # Convert the numpy array to a pandas DataFrame
     df = pd.DataFrame(reshaped_data, columns=handle.aScanListNames)
+
+    # Apply scale and offset to each data row
+    for channel_name, data in df.items():
+        if channel_name in dict_channel_offset_scale:
+            scale = dict_channel_offset_scale[channel_name]['scale']
+            offset = dict_channel_offset_scale[channel_name]['offset']
+            df[channel_name] = data.apply(lambda x: scale * x + offset)
+
+    # Save raw data to parquet gzip file
     full_filename = os.path.join(directory, f'sample_{i}.parquet.gzip')
     filename = os.path.basename(full_filename) 
     df.to_parquet(full_filename, compression='gzip')
@@ -47,7 +56,7 @@ def save_sample(i, aData, handle, directory, start_time_sample, db: Session, exp
     db.commit()
     db.refresh(new_sample)
 
-def start_data_collecting(experiment, db):
+def start_data_collecting(experiment, db, dict_channel_offset_scale):
     MAX_REQUESTS = int(experiment.experiment_parameters[7].value) # The number of eStreamRead calls that will be performed.
 
     # Use the mocked LabJack device
@@ -69,7 +78,7 @@ def start_data_collecting(experiment, db):
             aData = ret[0]
 
             # Call the save_sample function directly
-            save_sample(i, aData, handle, directory, start_time_sample, db, experiment)
+            save_sample(i, aData, handle, directory, start_time_sample, db, experiment, dict_channel_offset_scale)
 
             print("\neStreamRead %i" % i)
             ainStr = ""

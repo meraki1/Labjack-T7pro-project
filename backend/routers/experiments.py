@@ -34,8 +34,25 @@ async def fetch_experiment_number(db: Session = Depends(get_db)):
 @router.post("/start_experiment/")
 def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Session = Depends(get_db)):
     try:
+        # Query to get device_id
+        query_device = select(models.ExperimentLogs.device_id).where(models.ExperimentLogs.log_id == experiment.log_id)
+        result_device = db.execute(query_device)
+        device_id = result_device.scalar()
+
+        # Query to get offset and scale
+        query_offset_scale = select(models.DeviceChannel.channel_name,
+                            models.ParameterChannelRelationships.offset,
+                            models.ParameterChannelRelationships.scale
+                            ).join(models.ParameterChannelRelationships
+                            ).where(models.DeviceChannel.channel_id == models.ParameterChannelRelationships.channel_id,
+                                    models.ParameterChannelRelationships.device_id == device_id)
+        result_offset_scale = db.execute(query_offset_scale)
+
+        # Convert the result to a dictionary
+        dict_channel_offset_scale = {row.channel_name: {'offset': row.offset, 'scale': row.scale} for row in result_offset_scale}
+
         # Call the start_data_collecting function from dataCollectingTest.py
-        success = dataCollectingTest.start_data_collecting(experiment, db)
+        success = dataCollectingTest.start_data_collecting(experiment, db, dict_channel_offset_scale)
         if success:
             return {"message": "Experiment data collected successfully"}
         else:
@@ -43,7 +60,7 @@ def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Sess
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # Function to handle experiment data posting to the database
 @router.post("/experimentDataCreate/")
 def create_experiment_data(experiment_data: schemas.ExperimentUpdate, db: Session = Depends(get_db)):
@@ -214,7 +231,7 @@ async def fetch_experiment_visual_sample(experiment_id: int, sample_id: int, db:
 
     # Load the data from the .parquet.gzip file
     base_directory = os.getenv("base_directory")
-    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample.sample_number}.parquet.gzip")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
     
@@ -248,7 +265,7 @@ async def fetch_experiment_sample_stats(experiment_id: int, sample_id: int, db: 
 
     # Load the data from the .parquet.gzip file
     base_directory = os.getenv("base_directory")
-    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample.sample_number}.parquet.gzip")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
     
