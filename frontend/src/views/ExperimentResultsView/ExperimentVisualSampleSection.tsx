@@ -3,8 +3,12 @@ import { useQuery } from 'react-query';
 import { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import zoomPlugin from 'chartjs-plugin-zoom';
+import 'hammerjs';
+Chart.register(...registerables, zoomPlugin);
 import DownloadCSVButton from '../../components/DownloadCSVButton';
+import ResetZoomButton from '../../components/ResetZoomButton';
+
 
 type DataRow = {
     time: string;
@@ -27,9 +31,19 @@ const fetchExperimentVisualSample = async (experimentId: number, sampleId: numbe
   return data;
 };
 
+const fetchChannelParameters = async (experimentId: number) => {
+  const response = await fetch(`http://localhost:8000/experiment/${experimentId}/channel-parameters`);
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  const data = await response.json();
+  return data.channel_parameters;
+};
+
 const ExperimentVisualSampleSection = ({ experimentId, sampleId }: { experimentId: number, sampleId: number}) => {
     const { data, error, isLoading } = useQuery(['experiment_visual_sample', experimentId, sampleId], () => fetchExperimentVisualSample(experimentId, sampleId));
-    const chartComponentRef = useRef(null);
+    const chartComponentRef = useRef<Chart<"line", number[], unknown>>(null);
+    const { data: channelParameters, error: channelParametersError, isLoading: channelParametersLoading } = useQuery(['channel_parameters', experimentId], () => fetchChannelParameters(experimentId));
 
     const [selectedChannels, setSelectedChannels] = useState({
         AIN0: true,
@@ -39,9 +53,9 @@ const ExperimentVisualSampleSection = ({ experimentId, sampleId }: { experimentI
         AIN4: true,
       });
     
-      const handleCheckboxChange = (channel: Channel) => {
+    const handleCheckboxChange = (channel: Channel) => {
         setSelectedChannels(prev => ({ ...prev, [channel]: !prev[channel] }));
-      };
+    };
 
     useEffect(() => {
     }, [data]);
@@ -54,37 +68,63 @@ const ExperimentVisualSampleSection = ({ experimentId, sampleId }: { experimentI
         return <div>An error has occurred: {(error instanceof Error) ? error.message : 'Unknown error'}</div>;
     }
 
+    if (channelParametersLoading) {
+        return <div>Loading channel parameters...</div>;
+    }
+    
+    if (channelParametersError) {
+        return <div>An error occurred while fetching channel parameters: {(channelParametersError instanceof Error) ? channelParametersError.message : 'Unknown error'}</div>;
+    }
+  
     const chartData = {
-        labels: data.map((row: DataRow) => new Date(row.time)),
-        datasets: Object.keys(selectedChannels).filter(channel => selectedChannels[channel as keyof typeof selectedChannels]).map((channel, i) => ({          label: channel,
-          data: data.map((row: DataRow) => row[channel]),
-          fill: false,
-          borderColor: `hsl(${i * 72}, 100%, 50%)`,
-          tension: 0.1
-        }))
-      };
+      labels: data.map((row: DataRow) => new Date(row.time)),
+      datasets: Object.keys(selectedChannels).filter(channel => selectedChannels[channel as keyof typeof selectedChannels]).map((channel, i) => ({
+        label: `${channel} (${channelParameters[channel]})`,
+        data: data.map((row: DataRow) => row[channel]),
+        fill: false,
+        borderColor: `hsl(${i * 72}, 100%, 50%)`,
+        tension: 0.1
+      }))
+    };
 
     const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-        tooltip: {
-            mode: 'index' as const,
-            intersect: false
-        },
-        interaction: {
-            mode: 'nearest' as const,
-            axis: 'x',
-            intersect: false
-        }
-        },
-        scales: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+          tooltip: {
+              mode: 'index' as const,
+              intersect: false
+          },
+          interaction: {
+              mode: 'nearest' as const,
+              axis: 'x',
+              intersect: false
+          },
+          zoom: {
+              pan: {
+                  enabled: true,
+                  mode: 'xy' as 'x' | 'xy' | 'y',
+                  speed: 10,
+                  threshold: 10
+              },
+              zoom: {
+                  wheel: {
+                      enabled: true,
+                  },
+                  pinch: {
+                      enabled: true
+                  },
+                  mode: 'xy' as 'x' | 'xy' | 'y',
+              }
+            }
+          },
+          scales: {
             x: {
-            display: false
+                display: false
             }
         }
     };
-    
+        
     const handleSelectAllChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setSelectedChannels(prev => {
         const newValue = event.target.checked;
@@ -132,6 +172,9 @@ const ExperimentVisualSampleSection = ({ experimentId, sampleId }: { experimentI
         </div>
         <div style={{height: '400px'}}>
           <Line data={chartData} options={options} ref={chartComponentRef} />
+        </div>
+        <div className="flex justify-center items-center mt-4">
+          <ResetZoomButton onClick={() => chartComponentRef.current?.resetZoom()} />
         </div>
       </div>
     );

@@ -7,7 +7,7 @@ from typing import Optional, List
 from datetime import datetime
 import schemas, models, tests
 from database import get_db
-from services import dataCollecting
+from services import startDataCollecting
 from tests import dataCollectingTest
 from routers.experimentLogs import get_start_time
 import pandas as pd
@@ -52,7 +52,7 @@ def start_experiment(experiment: schemas.ExperimentStartDataCollecting, db: Sess
         dict_channel_offset_scale = {row.channel_name: {'offset': row.offset, 'scale': row.scale} for row in result_offset_scale}
 
         # Call the start_data_collecting function from dataCollectingTest.py
-        success = dataCollectingTest.start_data_collecting(experiment, db, dict_channel_offset_scale)
+        success = startDataCollecting.start_data_collecting(experiment, db, dict_channel_offset_scale)
         if success:
             return {"message": "Experiment data collected successfully"}
         else:
@@ -293,7 +293,7 @@ async def fetch_experiment_visual_sample_csv(experiment_id: int, sample_id: int,
 
     # Load the data from the .parquet.gzip file
     base_directory = os.getenv("base_directory")
-    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample_id}.parquet.gzip")
+    file_path = os.path.join(base_directory, f"experiment_{experiment_id}", f"sample_{sample.sample_number}.parquet.gzip")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
     
@@ -315,6 +315,6 @@ async def fetch_experiment_visual_sample_csv(experiment_id: int, sample_id: int,
     stream = io.StringIO()
     df.to_csv(stream, index=False)
     response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
-    response.headers["Content-Disposition"] = f"attachment; filename=experiment_{experiment_id}_sample_{sample_id}.csv"
+    response.headers["Content-Disposition"] = f"attachment; filename=experiment_{experiment_id}_sample_{sample.sample_number}.csv"
 
     return response
