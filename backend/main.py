@@ -4,7 +4,7 @@ from typing import Annotated, List
 from sqlalchemy.orm import Session
 from routers import channels, device, experimentLogs, experimentParameters, experiments, parameterChannelRelationship
 from tests import dataCollectingTest
-from services import dataCollecting
+from services import startDataCollecting
 import models
 
 app = FastAPI()
